@@ -6,7 +6,7 @@ repositories {
 
 dependencies {
     compile project(':models')
-    compile group: 'org.postgresql', name: 'postgresql', version: '9.4.1212'
+    compile group: 'com.impossibl.pgjdbc-ng', name: 'pgjdbc-ng', version: '0.6'
     compile group: 'com.zaxxer', name: 'HikariCP', version: '2.5.1'
     compile group: 'io.reactivex', name: 'rxjava', version: '1.2.3'
     compile group: 'org.mindrot', name: 'jbcrypt', version: '0.3m'
