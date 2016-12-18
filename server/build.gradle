@@ -1,0 +1,53 @@
+apply plugin: 'com.github.johnrengelman.shadow'
+
+version '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':models')
+    compile project(':database')
+    compile project(':common')
+    compile group: 'io.grpc', name: 'grpc-all', version: '1.0.2'
+    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
+    compile 'io.jsonwebtoken:jjwt:0.7.0'
+    compile group: 'me.dinowernli', name: 'java-grpc-prometheus', version: '0.3.0'
+    compile group: 'io.prometheus', name: 'simpleclient', version: '0.0.19'
+    compile group: 'io.prometheus', name: 'simpleclient_common', version: '0.0.19'
+    compile group: 'io.prometheus', name: 'simpleclient_servlet', version: '0.0.19'
+    compile group: 'io.prometheus', name: 'simpleclient_hotspot', version: '0.0.19'
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.0.v20161208'
+    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.0.v20161208'
+
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile group: 'com.google.truth', name: 'truth', version: '0.31'
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.3.5'
+}
+
+jar.finalizedBy shadowJar
+
+shadowJar {
+    mustRunAfter jar
+    archiveName = jar.archiveName
+    classifier = 'fat'
+    manifest {
+        attributes 'Main-Class': 'com.asadmshah.hnclone.server.Server'
+    }
+}
+
+artifacts {
+    shadowJar
+}
+
+task copyToServer << {
+    ssh.run {
+        settings {
+            knownHosts = allowAnyHosts
+        }
+        session(remotes.vm) {
+            put from: "server/build/libs/server-0.1.0.jar", into: "server.jar"
+        }
+    }
+}

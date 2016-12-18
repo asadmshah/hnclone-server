@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package hnclone;
+
+option java_multiple_files = true;
+option java_package = "com.asadmshah.hnclone.models";
+
+message Session {
+    uint32 id = 1;
+    Scopes scope = 2;
+    uint64 issued_dt = 3;
+    uint64 expire_dt = 4;
+
+    enum Scopes {
+        USER = 0;
+    }
+}
+
+message SessionRefreshRequest {
+    string token = 1;
+}
+
+message SessionRefreshResponse {
+    string token = 1;
+}
+
+message SessionCreateRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message SessionCreateResponse {
+    string request = 1;
+    string refresh = 2;
+}

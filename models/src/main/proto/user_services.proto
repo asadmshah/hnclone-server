@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package hnclone;
+
+import "user.proto";
+import "session.proto";
+
+option java_multiple_files = true;
+option java_package = "com.asadmshah.hnclone.services";
+
+service UserServices {
+}

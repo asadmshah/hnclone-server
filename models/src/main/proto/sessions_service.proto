@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package hnclone;
+
+import "session.proto";
+
+option java_multiple_files = true;
+option java_package = "com.asadmshah.hnclone.services";
+
+service SessionsService {
+    rpc Refresh (SessionRefreshRequest) returns (SessionRefreshResponse) {}
+    rpc Create (SessionCreateRequest) returns (SessionCreateResponse) {}
+}

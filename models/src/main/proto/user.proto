@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package hnclone;
+
+option java_multiple_files = true;
+option java_package = "com.asadmshah.hnclone.models";
+
+message User {
+    uint32 id = 1;
+    string name = 2;
+    double datetime = 3;
+    int32 karma = 4;
+    string about = 5;
+}
