@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.common.sessions
 
+import com.asadmshah.hnclone.models.Session
 import com.google.common.truth.Truth.assertThat
 import org.apache.commons.configuration2.Configuration
 import org.junit.After

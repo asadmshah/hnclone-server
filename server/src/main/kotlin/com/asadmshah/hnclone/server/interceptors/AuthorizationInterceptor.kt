@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.server.interceptors
 
+import com.asadmshah.hnclone.models.Session
 import com.asadmshah.hnclone.server.ServerComponent
 import io.grpc.*
 import io.grpc.Metadata.ASCII_STRING_MARSHALLER

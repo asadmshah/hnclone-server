@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.common.sessions
 
+import com.asadmshah.hnclone.models.Session
 import com.google.protobuf.AbstractMessage
 import io.jsonwebtoken.*
 import org.apache.commons.configuration2.Configuration

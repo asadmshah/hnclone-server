@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.server.database
 
+import com.asadmshah.hnclone.models.User
 import org.mindrot.jbcrypt.BCrypt
 import java.sql.*
 import javax.inject.Inject

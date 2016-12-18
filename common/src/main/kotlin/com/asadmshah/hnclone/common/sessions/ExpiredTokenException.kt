@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.common.sessions
 
+import com.asadmshah.hnclone.models.Session
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset

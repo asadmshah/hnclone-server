@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.common.sessions
 
+import com.asadmshah.hnclone.models.Session
 import java.util.concurrent.TimeUnit
 
 /**
