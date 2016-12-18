@@ -12,3 +12,26 @@ message User {
     int32 karma = 4;
     string about = 5;
 }
+
+message UserCreateRequest {
+    string name = 1;
+    string pass = 2;
+    string about = 3;
+}
+
+message UserReadUsingIDRequest {
+    uint32 id = 1;
+}
+
+message UserReadUsingNameRequest {
+    string name = 1;
+}
+
+message UserUpdateAboutRequest {
+    uint32 = 1;
+    string about = 2;
+}
+
+message UserDeleteRequest {
+    uint32 id = 1;
+}
