@@ -15,12 +15,12 @@ import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import java.sql.SQLException
 
-class SessionsEndpoint private constructor(component: ServerComponent) : SessionsServiceGrpc.SessionsServiceImplBase() {
+class SessionsServiceEndpoint private constructor(component: ServerComponent) : SessionsServiceGrpc.SessionsServiceImplBase() {
 
     companion object {
         @JvmStatic
-        fun create(component: ServerComponent): SessionsEndpoint {
-            return SessionsEndpoint(component)
+        fun create(component: ServerComponent): SessionsServiceEndpoint {
+            return SessionsServiceEndpoint(component)
         }
     }
 

@@ -25,9 +25,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SessionsEndpointTest {
+public class SessionsServiceEndpointTest {
 
-    private static final String UNIQUE_SERVER_NAME = "in-process-server for " + SessionsEndpointTest.class.getSimpleName();
+    private static final String UNIQUE_SERVER_NAME = "in-process-server for " + SessionsServiceEndpointTest.class.getSimpleName();
 
     private ManagedChannel inProcessChannel = InProcessChannelBuilder
             .forName(UNIQUE_SERVER_NAME)
@@ -47,7 +47,7 @@ public class SessionsEndpointTest {
 
         inProcessServer = InProcessServerBuilder
                 .forName(UNIQUE_SERVER_NAME)
-                .addService(SessionsEndpoint.create(component))
+                .addService(SessionsServiceEndpoint.create(component))
                 .directExecutor()
                 .build();
         inProcessServer.start();

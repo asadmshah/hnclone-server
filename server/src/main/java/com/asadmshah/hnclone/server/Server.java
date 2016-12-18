@@ -1,6 +1,6 @@
 package com.asadmshah.hnclone.server;
 
-import com.asadmshah.hnclone.server.endpoints.SessionsEndpoint;
+import com.asadmshah.hnclone.server.endpoints.SessionsServiceEndpoint;
 import io.grpc.ServerBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -14,7 +14,7 @@ public class Server {
     public Server(ServerComponent component) {
         this.grpcServer = ServerBuilder
                 .forPort(component.configuration().getInt("server.port"))
-                .addService(SessionsEndpoint.create(component))
+                .addService(SessionsServiceEndpoint.create(component))
                 .build();
     }
 
