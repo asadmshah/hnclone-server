@@ -36,4 +36,8 @@ interface UsersDatabase {
      * @throws SQLException
      */
     fun read(name: String, pass: String): User?
+
+    fun update(id: Int, about: String = ""): User?
+
+    fun delete(id: Int): User?
 }

@@ -149,4 +149,58 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
         return if (good) read(name) else null
     }
 
+    override fun update(id: Int, about: String): User? {
+        var conn: Connection? = null
+        var stmt: PreparedStatement? = null
+        var rslt: ResultSet? = null
+        var user: User? = null
+
+        try {
+            conn = dataSource.connection
+
+            stmt = conn.prepareStatement(SQL_UPDATE_ABOUT)
+            stmt.setInt(1, id)
+            stmt.setString(2, about)
+
+            rslt = stmt.executeQuery()
+            if (rslt != null && rslt.next()) {
+                user = resultSetToUserFull(rslt)
+            }
+        } catch (e: SQLException) {
+            throw e
+        } finally {
+            try { rslt?.close() } catch (ignored: Exception) {  }
+            try { stmt?.close() } catch (ignored: Exception) {  }
+            try { conn?.close() } catch (ignored: Exception) {  }
+        }
+
+        return user
+    }
+
+    override fun delete(id: Int): User? {
+        var conn: Connection? = null
+        var stmt: PreparedStatement? = null
+        var rslt: ResultSet? = null
+        var user: User? = null
+
+        try {
+            conn = dataSource.connection
+
+            stmt = conn.prepareStatement(SQL_DELETE)
+            stmt.setInt(1, id)
+
+            rslt = stmt.executeQuery()
+            if (rslt != null && rslt.next()) {
+                user = resultSetToUserFull(rslt)
+            }
+        } catch (e: SQLException) {
+            throw e
+        } finally {
+            try { rslt?.close() } catch (ignored: Exception) {  }
+            try { stmt?.close() } catch (ignored: Exception) {  }
+            try { conn?.close() } catch (ignored: Exception) {  }
+        }
+
+        return user
+    }
 }
