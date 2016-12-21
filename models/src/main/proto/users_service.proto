@@ -7,7 +7,7 @@ import "user.proto";
 option java_multiple_files = true;
 option java_package = "com.asadmshah.hnclone.services";
 
-service UserServices {
+service UsersService {
     rpc Create (UserCreateRequest) returns (User);
     rpc ReadUsingID (UserReadUsingIDRequest) returns (User);
     rpc ReadUsingName (UserReadUsingNameRequest) returns (User);
