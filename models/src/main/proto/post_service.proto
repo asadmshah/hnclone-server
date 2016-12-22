@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package hnclone;
+
+import "post.proto";
+
+option java_multiple_files = true;
+option java_package = "com.asadmshah.hnclone.services";
+option optimize_for = LITE_RUNTIME;
+
+service PostService {
+    rpc Create (PostCreateRequest) returns (Post);
+    rpc Delete (PostDeleteRequest) returns (PostDeleteResponse);
+    rpc Flag (PostFlagRequest) returns (PostFlagResponse);
+    rpc Read (PostReadRequest) returns (Post);
+    rpc ReadNewStream (PostReadListRequest) returns (stream Post);
+    rpc ReadHotStream (PostReadListRequest) returns (stream Post);
+    rpc ReadFromUserStream (PostReadListFromUserRequest) returns (stream Post);
+    rpc VoteDecrement (PostVoteDecrementRequest) returns (PostScoreResponse);
+    rpc VoteIncrement (PostVoteIncrementRequest) returns (PostScoreResponse);
+    rpc VoteRemove (PostVoteRemoveRequest) returns (PostScoreResponse);
+}
