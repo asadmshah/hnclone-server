@@ -7,22 +7,25 @@ repositories {
 }
 
 dependencies {
-    compile 'com.google.protobuf:protobuf-java:3.1.0'
-    compile group: 'io.grpc', name: 'grpc-all', version: '1.0.2'
+    compile group: 'com.google.protobuf', name: 'protobuf-java', version: "$protoc_version"
 
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile group: 'io.grpc', name: 'grpc-protobuf-lite', version: "$grpc_version"
+    compile group: 'io.grpc', name: 'grpc-stub', version: "$grpc_version"
 }
 
 protobuf {
     generatedFilesBaseDir = "$projectDir/gen"
 
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.1.0'
+        artifact = "com.google.protobuf:protoc:$protoc_version"
     }
 
     plugins {
+        javalite {
+            artifact = "com.google.protobuf:protoc-gen-javalite:$protoc_version"
+        }
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.0.2'
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpc_version"
         }
     }
 
@@ -32,7 +35,9 @@ protobuf {
             // options.  Note the braces cannot be omitted, otherwise the
             // plugin will not be added. This is because of the implicit way
             // NamedDomainObjectContainer binds the methods.
-            grpc { }
+            grpc {
+                option 'lite'
+            }
         }
     }
 }
