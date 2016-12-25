@@ -15,7 +15,6 @@ message Post {
     uint32      score           = 6;
     uint32      user_id         = 7;
     string      user_name       = 8;
-    bool        flagged         = 9;
     bool        upvoted         = 10;
 }
 
@@ -41,15 +40,6 @@ message PostScoreResponse {
     uint32      id              = 1;
     uint32      score           = 2;
     bool        upvoted         = 3;
-}
-
-message PostFlagRequest {
-    uint32      id              = 1;
-}
-
-message PostFlagResponse {
-    uint32      id              = 1;
-    bool        flagged         = 2;
 }
 
 message PostDeleteRequest {

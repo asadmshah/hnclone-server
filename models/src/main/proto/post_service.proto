@@ -11,7 +11,6 @@ option optimize_for = LITE_RUNTIME;
 service PostService {
     rpc Create (PostCreateRequest) returns (Post);
     rpc Delete (PostDeleteRequest) returns (PostDeleteResponse);
-    rpc Flag (PostFlagRequest) returns (PostFlagResponse);
     rpc Read (PostReadRequest) returns (Post);
     rpc ReadNewStream (PostReadListRequest) returns (stream Post);
     rpc ReadHotStream (PostReadListRequest) returns (stream Post);
