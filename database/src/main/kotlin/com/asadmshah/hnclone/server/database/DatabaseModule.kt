@@ -35,4 +35,10 @@ class DatabaseModule {
         return usersDatabase
     }
 
+    @Provides
+    @Singleton
+    internal fun providesPosts(postsDatabase: PostsDatabaseImpl): PostsDatabase {
+        return postsDatabase
+    }
+
 }
