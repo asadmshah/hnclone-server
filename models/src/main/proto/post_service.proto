@@ -8,7 +8,7 @@ option java_multiple_files = true;
 option java_package = "com.asadmshah.hnclone.services";
 option optimize_for = LITE_RUNTIME;
 
-service PostService {
+service PostsService {
     rpc Create (PostCreateRequest) returns (Post);
     rpc Delete (PostDeleteRequest) returns (PostDeleteResponse);
     rpc Read (PostReadRequest) returns (Post);

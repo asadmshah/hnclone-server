@@ -8,19 +8,19 @@ import com.asadmshah.hnclone.models.*
 import com.asadmshah.hnclone.server.ServerComponent
 import com.asadmshah.hnclone.server.database.PostsDatabase
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor
-import com.asadmshah.hnclone.services.PostServiceGrpc
+import com.asadmshah.hnclone.services.PostsServiceGrpc
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
 import io.grpc.stub.StreamObserver
 import org.apache.commons.validator.routines.UrlValidator
 import java.sql.SQLException
 
-class PostServiceEndpoint private constructor(component: ServerComponent) : PostServiceGrpc.PostServiceImplBase() {
+class PostsServiceEndpoint private constructor(component: ServerComponent) : PostsServiceGrpc.PostsServiceImplBase() {
 
     companion object {
         @JvmStatic
         fun create(component: ServerComponent): ServerServiceDefinition {
-            val endpoint = PostServiceEndpoint(component)
+            val endpoint = PostsServiceEndpoint(component)
             val interceptor = SessionInterceptor.create(component)
 
             return ServerInterceptors.intercept(endpoint, interceptor)

@@ -8,8 +8,8 @@ import com.asadmshah.hnclone.models.*;
 import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.database.PostsDatabase;
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor;
-import com.asadmshah.hnclone.services.PostServiceGrpc;
-import com.asadmshah.hnclone.services.PostServiceGrpc.PostServiceBlockingStub;
+import com.asadmshah.hnclone.services.PostsServiceGrpc;
+import com.asadmshah.hnclone.services.PostsServiceGrpc.PostsServiceBlockingStub;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.Server;
@@ -35,14 +35,14 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PostServiceEndpointTest {
+public class PostsServiceEndpointTest {
 
-    private static final String SERVER_NAME = "in-process server for " + PostServiceEndpoint.class.getSimpleName();
+    private static final String SERVER_NAME = "in-process server for " + PostsServiceEndpoint.class.getSimpleName();
 
     private ManagedChannel inProcessChannel;
     private Server inProcessServer;
 
-    private PostServiceBlockingStub inProcessStub;
+    private PostsServiceBlockingStub inProcessStub;
 
     @Mock private SessionManager sessionManager;
     @Mock private PostsDatabase postsDatabase;
@@ -62,7 +62,6 @@ public class PostServiceEndpointTest {
 
     @Before
     public void setUp() throws Exception {
-//        when(component.usersDatabase()).thenReturn(usersDatabase);
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.postsDatabase()).thenReturn(postsDatabase);
 
@@ -73,13 +72,13 @@ public class PostServiceEndpointTest {
 
         inProcessServer = InProcessServerBuilder
                 .forName(SERVER_NAME)
-                .addService(PostServiceEndpoint.create(component))
+                .addService(PostsServiceEndpoint.create(component))
                 .directExecutor()
                 .build();
 
         inProcessServer.start();
 
-        inProcessStub = PostServiceGrpc.newBlockingStub(inProcessChannel);
+        inProcessStub = PostsServiceGrpc.newBlockingStub(inProcessChannel);
 
         testSession = Session.newBuilder().setId(10).build();
     }
