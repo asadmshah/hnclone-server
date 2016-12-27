@@ -6,6 +6,7 @@ import "user.proto";
 
 option java_multiple_files = true;
 option java_package = "com.asadmshah.hnclone.services";
+option optimize_for = LITE_RUNTIME;
 
 service UsersService {
     rpc Create (UserCreateRequest) returns (User);

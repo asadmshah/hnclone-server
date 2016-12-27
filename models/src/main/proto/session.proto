@@ -4,6 +4,7 @@ package hnclone;
 
 option java_multiple_files = true;
 option java_package = "com.asadmshah.hnclone.models";
+option optimize_for = LITE_RUNTIME;
 
 message Session {
     uint32 id = 1;

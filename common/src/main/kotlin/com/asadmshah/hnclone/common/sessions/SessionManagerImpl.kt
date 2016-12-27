@@ -1,7 +1,6 @@
 package com.asadmshah.hnclone.common.sessions
 
 import com.asadmshah.hnclone.models.Session
-import com.google.protobuf.AbstractMessage
 import io.jsonwebtoken.*
 import org.apache.commons.configuration2.Configuration
 import java.nio.charset.StandardCharsets
@@ -55,12 +54,12 @@ internal class SessionManagerImpl private constructor(private val requestKey: By
         return parse(refreshKey, token)
     }
 
-    internal fun encode(message: AbstractMessage): String {
-        return String(Base64.getEncoder().encode(message.toByteArray()), StandardCharsets.ISO_8859_1)
+    internal fun encode(session: Session): String {
+        return String(Base64.getEncoder().encode(session.toByteArray()), StandardCharsets.ISO_8859_1)
     }
 
-    internal fun decode(message: String): ByteArray {
-        return Base64.getDecoder().decode(message.toByteArray(StandardCharsets.ISO_8859_1))
+    internal fun decode(message: String): Session {
+        return Session.parseFrom(Base64.getDecoder().decode(message.toByteArray(StandardCharsets.ISO_8859_1)))
     }
 
     internal fun session(id: Int, scope: Session.Scopes, issued: Long, expire: Long): Session {
@@ -70,7 +69,7 @@ internal class SessionManagerImpl private constructor(private val requestKey: By
     internal fun parse(key: ByteArray, jws: String): Session {
         try {
             val body = Jwts.parser().setSigningKey(key).parsePlaintextJws(jws).body
-            val session = Session.parseFrom(decode(body))
+            val session = decode(body)
             if (session.expireDt <= System.currentTimeMillis()) {
                 throw ExpiredTokenException(session)
             }
