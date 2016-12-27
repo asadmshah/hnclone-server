@@ -17,8 +17,6 @@ constructor(private val dataSource: DataSource): PostsDatabase {
         //language=PostgreSQL
         private const val SQL_DELETE_POST = ""
         //language=PostgreSQL
-        private const val SQL_FLAG_POST = ""
-        //language=PostgreSQL
         private const val SQL_READ_POST = ""
         //language=PostgreSQL
         private const val SQL_READ_POSTS_NEW = ""
