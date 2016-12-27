@@ -16,6 +16,7 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-api', version: "$sl4j_version"
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: "$sl4j_version"
     compile group: 'com.google.guava', name: 'guava', version: "$guava_version"
+    compile group: 'commons-validator', name: 'commons-validator', version: '1.5.1'
 
     compile group: 'com.google.dagger', name: 'dagger', version: "$dagger_version"
     kapt    group: 'com.google.dagger', name: 'dagger-compiler', version: "$dagger_version"
