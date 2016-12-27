@@ -38,8 +38,8 @@ message PostVoteRemoveRequest {
 
 message PostScoreResponse {
     uint32      id              = 1;
-    uint32      score           = 2;
-    bool        upvoted         = 3;
+    int32       score           = 2;
+    int32       voted           = 3;
 }
 
 message PostDeleteRequest {
