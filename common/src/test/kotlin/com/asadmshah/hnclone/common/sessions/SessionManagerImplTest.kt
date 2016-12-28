@@ -2,12 +2,9 @@ package com.asadmshah.hnclone.common.sessions
 
 import com.asadmshah.hnclone.models.Session
 import com.google.common.truth.Truth.assertThat
-import org.apache.commons.configuration2.Configuration
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 
 // TODO: Test Thoroughly.
 class SessionManagerImplTest {
@@ -19,11 +16,7 @@ class SessionManagerImplTest {
 
     @Before
     fun setUp() {
-        val configuration = mock(Configuration::class.java)
-        `when`(configuration.getString("auth.secret.request")).thenReturn(requestKey)
-        `when`(configuration.getString("auth.secret.refresh")).thenReturn(refreshKey)
-
-        sessionManager = SessionManagerImpl.create(configuration)
+        sessionManager = SessionManagerImpl(requestKey.toByteArray(), refreshKey.toByteArray(), JwtTokenizer())
     }
 
     @After
