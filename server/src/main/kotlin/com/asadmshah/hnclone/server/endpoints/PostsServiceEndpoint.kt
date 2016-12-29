@@ -102,7 +102,14 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        val post: Post? = postsDatabase.read(session.id, request.id)
+        val post: Post?
+        try {
+            post = postsDatabase.read(session.id, request.id)
+        } catch (e: SQLException) {
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
+        }
+
         if (post == null) {
             responseObserver.onError(PostServiceErrors.NotFoundException)
             return
@@ -132,7 +139,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             post = postsDatabase.read(userId, request.id)
         } catch (e: SQLException) {
-            responseObserver.onError(PostServiceErrors.NotFoundException)
+            responseObserver.onError(CommonServiceErrors.UnknownException)
             return
         }
 
@@ -197,7 +204,14 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        val post: Post? = postsDatabase.read(session.id, request.id)
+        val post: Post?
+        try {
+            post = postsDatabase.read(session.id, request.id)
+        } catch (e: SQLException) {
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
+        }
+
         if (post == null) {
             responseObserver.onError(PostServiceErrors.NotFoundException)
             return
@@ -229,7 +243,14 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        val post: Post? = postsDatabase.read(session.id, request.id)
+        val post: Post?
+        try {
+            post = postsDatabase.read(session.id, request.id)
+        } catch (e: SQLException) {
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
+        }
+
         if (post == null) {
             responseObserver.onError(PostServiceErrors.NotFoundException)
             return
@@ -261,7 +282,14 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        val post: Post? = postsDatabase.read(session.id, request.id)
+        val post: Post?
+        try {
+            post = postsDatabase.read(session.id, request.id)
+        } catch (e: SQLException) {
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
+        }
+
         if (post == null) {
             responseObserver.onError(PostServiceErrors.NotFoundException)
             return

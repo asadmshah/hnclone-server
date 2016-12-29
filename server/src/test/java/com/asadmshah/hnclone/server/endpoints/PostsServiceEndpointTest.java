@@ -518,6 +518,56 @@ public class PostsServiceEndpointTest {
     }
 
     @Test
+    public void deletePost_shouldThrowSQLExceptionOnDelete() {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+        Post post = Post.newBuilder().setUserId(1).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
+        when(postsDatabase.delete(anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        PostDeleteRequest req = PostDeleteRequest.getDefaultInstance();
+
+        StatusRuntimeException resException = null;
+        try {
+            inProcessStub.delete(req);
+        } catch (StatusRuntimeException e) {
+            resException = e;
+        }
+
+        assertThat(resException).isNotNull();
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void deletePost_shouldThrowSQLExceptionOnRead() {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.read(anyInt(), anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        PostDeleteRequest req = PostDeleteRequest.getDefaultInstance();
+
+        StatusRuntimeException resException = null;
+        try {
+            inProcessStub.delete(req);
+        } catch (StatusRuntimeException e) {
+            resException = e;
+        }
+
+        assertThat(resException).isNotNull();
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
     public void deletePost_shouldComplete() {
         int userId = 10;
         int postId = 20;
@@ -631,6 +681,21 @@ public class PostsServiceEndpointTest {
     }
 
     @Test
+    public void readPost_shouldThrowSQLException() {
+        when(postsDatabase.read(anyInt(), anyInt())).thenThrow(SQLException.class);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.read(PostReadRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
     public void voteDecrement_shouldThrowUnauthenticatedError() {
         PostVoteDecrementRequest request = PostVoteDecrementRequest.getDefaultInstance();
 
@@ -643,6 +708,49 @@ public class PostsServiceEndpointTest {
 
         assertThat(resException).isNotNull();
         assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+    }
+
+    @Test
+    public void voteDecrement_shouldThrowSQLExceptionOnRead() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(postsDatabase.read(anyInt(), anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException resException = null;
+        try {
+            inProcessStub.voteDecrement(PostVoteDecrementRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            resException = e;
+        }
+
+        assertThat(resException).isNotNull();
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void voteDecrement_shouldThrowSQLExceptionOnDecrement() {
+        PostVoteDecrementRequest request = PostVoteDecrementRequest.getDefaultInstance();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
+        when(postsDatabase.voteDecrement(anyInt(), anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException resException = null;
+        try {
+            inProcessStub.voteDecrement(request);
+        } catch (StatusRuntimeException e) {
+            resException = e;
+        }
+
+        assertThat(resException).isNotNull();
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
     }
 
     @Test
@@ -753,6 +861,47 @@ public class PostsServiceEndpointTest {
     }
 
     @Test
+    public void voteIncrement_shouldThrowSQLExceptionOnIncrement() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
+        when(postsDatabase.voteIncrement(anyInt(), anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.voteIncrement(PostVoteIncrementRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void voteIncrement_shouldThrowSQLExceptionOnRead() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(postsDatabase.read(anyInt(), anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.voteIncrement(PostVoteIncrementRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
     public void voteIncrement_shouldComplete() {
         Post post = Post
                 .newBuilder()
@@ -833,6 +982,47 @@ public class PostsServiceEndpointTest {
 
         assertThat(resException).isNotNull();
         assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getNotFound().getDescription());
+    }
+
+    @Test
+    public void voteRemove_shouldThrowSQLExceptionOnRemove() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
+        when(postsDatabase.voteRemove(anyInt(), anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException resException = null;
+        try {
+            inProcessStub.voteRemove(PostVoteRemoveRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            resException = e;
+        }
+
+        assertThat(resException).isNotNull();
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void voteRemove_shouldThrowSQLExceptionOnRead() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(postsDatabase.read(anyInt(), anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException resException = null;
+        try {
+            inProcessStub.voteRemove(PostVoteRemoveRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            resException = e;
+        }
+
+        assertThat(resException).isNotNull();
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
     }
 
     @Test
