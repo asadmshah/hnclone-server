@@ -58,7 +58,7 @@ public class PostsServiceEndpointTest {
     @Captor private ArgumentCaptor<Integer> psviIdCaptor;
     @Captor private ArgumentCaptor<Integer> psvrIdCaptor;
 
-    private Session testSession;
+    private RequestSession testSession;
 
     @Before
     public void setUp() throws Exception {
@@ -80,7 +80,10 @@ public class PostsServiceEndpointTest {
 
         inProcessStub = PostsServiceGrpc.newBlockingStub(inProcessChannel);
 
-        testSession = Session.newBuilder().setId(10).build();
+        testSession = RequestSession
+                .newBuilder()
+                .setId(10)
+                .build();
     }
 
     @After
@@ -93,7 +96,7 @@ public class PostsServiceEndpointTest {
     public void createPost_shouldComplete() {
         Post expPost = Post.getDefaultInstance();
 
-        when(sessionManager.parseRequestToken(anyString()))
+        when(sessionManager.parseRequestToken(any(byte[].class)))
                 .thenReturn(testSession);
         when(postsDatabase.create(anyInt(), anyString(), anyString(), anyString()))
                 .thenReturn(expPost);
@@ -106,7 +109,7 @@ public class PostsServiceEndpointTest {
                 .build();
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         Post resPost = inProcessStub.create(req);
@@ -124,14 +127,6 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorOnNoSession() {
-//        Session session = Session.getDefaultInstance();
-//        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
-
-        Post post = Post.getDefaultInstance();
-
-//        when(postsDatabase.create(anyInt(), anyString(), anyString(), anyString()))
-//                .thenReturn(post);
-
         PostCreateRequest req = PostCreateRequest
                 .newBuilder()
                 .setTitle("Test Title")
@@ -152,11 +147,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorOnEmptyTitle() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -179,11 +174,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorOnNullTitle() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -203,13 +198,14 @@ public class PostsServiceEndpointTest {
         assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getTitleRequired().getDescription());
     }
 
+
     @Test
     public void createPost_shouldThrowErrorOnLongTitle() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -232,11 +228,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorOnNoContent() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -256,14 +252,13 @@ public class PostsServiceEndpointTest {
         assertThat(resException).isNotNull();
         assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getContentRequired().getDescription());
     }
-
     @Test
     public void createPost_shouldSucceedWithTitleAndUrlButNoText() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         Post expPost = Post.getDefaultInstance();
@@ -292,11 +287,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldSucceedWithTitleAndTextButNoUrl() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         Post expPost = Post.getDefaultInstance();
@@ -325,11 +320,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorOnInvalidURL() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -351,11 +346,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorTextTooLong() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -377,11 +372,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorOnDatabaseError() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -407,11 +402,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorOnCreateReturningNull() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -436,11 +431,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void createPost_shouldThrowErrorOnLongUrl() {
-        Session session = Session.getDefaultInstance();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostCreateRequest req = PostCreateRequest
@@ -477,13 +472,11 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void deletePost_shouldThrowPostNotFoundError() {
-        Session session = Session.newBuilder().setId(1).build();
-
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(null);
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostDeleteRequest req = PostDeleteRequest.getDefaultInstance();
@@ -501,14 +494,14 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void deletePost_shouldThrowUnauthorizedError() {
-        Session session = Session.newBuilder().setId(1).build();
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
         Post post = Post.newBuilder().setUserId(2).build();
 
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostDeleteRequest req = PostDeleteRequest.getDefaultInstance();
@@ -529,8 +522,8 @@ public class PostsServiceEndpointTest {
         int userId = 10;
         int postId = 20;
 
-        Session session = Session.newBuilder().setId(userId).build();
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        RequestSession session = RequestSession.newBuilder().setId(userId).build();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Post post = Post.newBuilder().setId(postId).setUserId(userId).build();
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
@@ -543,7 +536,7 @@ public class PostsServiceEndpointTest {
                 .build();
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostDeleteResponse res = inProcessStub.delete(req);
@@ -586,9 +579,9 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readPost_shouldCompleteWithSession() {
-        Session session = Session.newBuilder().setId(100).build();
+        RequestSession session = RequestSession.newBuilder().setId(100).build();
 
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
         Post exp = Post
                 .newBuilder()
@@ -598,7 +591,7 @@ public class PostsServiceEndpointTest {
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(exp);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostReadRequest req = PostReadRequest
@@ -654,13 +647,13 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void voteDecrement_shouldThrowPostNotFoundError() {
-        Session session = Session.newBuilder().setId(1).build();
+        RequestSession session = RequestSession.newBuilder().setId(100).build();
 
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(null);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostVoteDecrementRequest request = PostVoteDecrementRequest.getDefaultInstance();
@@ -690,14 +683,14 @@ public class PostsServiceEndpointTest {
                 .setVoted(-1)
                 .build();
 
-        Session session = Session.newBuilder().setId(1).build();
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
 
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
         when(postsDatabase.voteDecrement(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostVoteDecrementRequest request = PostVoteDecrementRequest
@@ -737,13 +730,13 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void voteIncrement_shouldThrowPostNotFoundError() {
-        Session session = Session.newBuilder().setId(1).build();
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
 
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(null);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostVoteIncrementRequest request = PostVoteIncrementRequest.getDefaultInstance();
@@ -773,14 +766,14 @@ public class PostsServiceEndpointTest {
                 .setVoted(1)
                 .build();
 
-        Session session = Session.newBuilder().setId(1).build();
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
 
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
         when(postsDatabase.voteIncrement(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostVoteIncrementRequest request = PostVoteIncrementRequest
@@ -820,13 +813,13 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void voteRemove_shouldThrowPostNotFound() {
-        Session session = Session.newBuilder().setId(1).build();
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
 
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(null);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostVoteRemoveRequest request = PostVoteRemoveRequest.getDefaultInstance();
@@ -856,14 +849,14 @@ public class PostsServiceEndpointTest {
                 .setVoted(0)
                 .build();
 
-        Session session = Session.newBuilder().setId(1).build();
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
 
-        when(sessionManager.parseRequestToken(anyString())).thenReturn(session);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
         when(postsDatabase.voteRemove(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "");
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         PostVoteRemoveRequest request = PostVoteRemoveRequest

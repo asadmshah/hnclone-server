@@ -6,23 +6,27 @@ option java_multiple_files = true;
 option java_package = "com.asadmshah.hnclone.models";
 option optimize_for = LITE_RUNTIME;
 
-message Session {
+enum SessionScope {
+    USER = 0;
+}
+
+message RequestSession {
     uint32 id = 1;
-    Scopes scope = 2;
+    SessionScope scope = 2;
     uint64 issued_dt = 3;
     uint64 expire_dt = 4;
-
-    enum Scopes {
-        USER = 0;
-    }
 }
 
-message SessionRefreshRequest {
-    string token = 1;
+message RefreshSession {
+    uint32 id = 1;
+    SessionScope scope = 2;
+    uint64 issued_dt = 3;
+    uint64 expire_dt = 4;
 }
 
-message SessionRefreshResponse {
-    string token = 1;
+message SessionToken {
+    bytes data = 1;
+    bytes sign = 2;
 }
 
 message SessionCreateRequest {
@@ -31,6 +35,6 @@ message SessionCreateRequest {
 }
 
 message SessionCreateResponse {
-    string request = 1;
-    string refresh = 2;
+    SessionToken request = 1;
+    SessionToken refresh = 2;
 }

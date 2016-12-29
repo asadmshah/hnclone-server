@@ -36,7 +36,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     }
 
     override fun create(request: PostCreateRequest, responseObserver: StreamObserver<Post>) {
-        val session: Session? = SessionInterceptor.KEY_SESSION.get()
+        val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
             responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
             return
@@ -96,7 +96,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     }
 
     override fun delete(request: PostDeleteRequest, responseObserver: StreamObserver<PostDeleteResponse>) {
-        val session: Session? = SessionInterceptor.KEY_SESSION.get()
+        val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
             responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
             return
@@ -191,7 +191,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     }
 
     override fun voteDecrement(request: PostVoteDecrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {
-        val session: Session? = SessionInterceptor.KEY_SESSION.get()
+        val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
             responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
             return
@@ -223,7 +223,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     }
 
     override fun voteIncrement(request: PostVoteIncrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {
-        val session: Session? = SessionInterceptor.KEY_SESSION.get()
+        val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
             responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
             return
@@ -255,7 +255,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     }
 
     override fun voteRemove(request: PostVoteRemoveRequest, responseObserver: StreamObserver<PostScoreResponse>) {
-        val session: Session? = SessionInterceptor.KEY_SESSION.get()
+        val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
             responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
             return

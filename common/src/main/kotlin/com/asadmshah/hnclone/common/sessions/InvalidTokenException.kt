@@ -1,3 +1,3 @@
 package com.asadmshah.hnclone.common.sessions
 
-class InvalidTokenException internal constructor(message: String?, cause: Throwable?) : RuntimeException(message, cause)
+class InvalidTokenException internal constructor(cause: Throwable?) : RuntimeException("Unable to parse token.", cause)

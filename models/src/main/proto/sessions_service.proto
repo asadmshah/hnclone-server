@@ -9,6 +9,6 @@ option java_package = "com.asadmshah.hnclone.services";
 option optimize_for = LITE_RUNTIME;
 
 service SessionsService {
-    rpc Refresh (SessionRefreshRequest) returns (SessionRefreshResponse) {}
+    rpc Refresh (SessionToken) returns (SessionToken) {}
     rpc Create (SessionCreateRequest) returns (SessionCreateResponse) {}
 }
