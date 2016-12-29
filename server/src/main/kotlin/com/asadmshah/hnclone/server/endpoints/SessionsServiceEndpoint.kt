@@ -5,8 +5,7 @@ import com.asadmshah.hnclone.common.sessions.InvalidTokenException
 import com.asadmshah.hnclone.common.sessions.SessionManager
 import com.asadmshah.hnclone.models.SessionCreateRequest
 import com.asadmshah.hnclone.models.SessionCreateResponse
-import com.asadmshah.hnclone.models.SessionRefreshRequest
-import com.asadmshah.hnclone.models.SessionRefreshResponse
+import com.asadmshah.hnclone.models.SessionToken
 import com.asadmshah.hnclone.server.ServerComponent
 import com.asadmshah.hnclone.server.database.UserExistsException
 import com.asadmshah.hnclone.server.database.UsersDatabase
@@ -32,12 +31,10 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
         this.sessions = component.sessionManager()
     }
 
-    override fun refresh(request: SessionRefreshRequest, responseObserver: StreamObserver<SessionRefreshResponse>) {
+    override fun refresh(request: SessionToken, responseObserver: StreamObserver<SessionToken>) {
         try {
-            val session = sessions.parseRefreshToken(request.token)
-            val refresh = sessions.createRequestToken(session.id)
-            val response = SessionRefreshResponse.newBuilder().setToken(refresh).build()
-            responseObserver.onNext(response)
+            val session = sessions.parseRefreshToken(request)
+            responseObserver.onNext(sessions.createRequestToken(session.id))
             responseObserver.onCompleted()
         } catch (e: ExpiredTokenException) {
             responseObserver.onError(Status.PERMISSION_DENIED.withDescription("Expired Token").asRuntimeException())
@@ -56,6 +53,7 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
 
             val sreq = sessions.createRequestToken(user.id)
             val sref = sessions.createRefreshToken(user.id)
+
             val response = SessionCreateResponse.newBuilder().setRequest(sreq).setRefresh(sref).build()
             responseObserver.onNext(response)
             responseObserver.onCompleted()

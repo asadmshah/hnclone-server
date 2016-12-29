@@ -21,6 +21,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -148,88 +150,78 @@ public class UsersServiceEndpointTest {
 
     @Test
     public void updateAboutCorrect() {
-        int expID = 10;
-        String expAbout = "Test About";
-
-        String expSessionString = "Session String";
-
         User expUser = User
                 .newBuilder()
-                .setId(expID)
-                .setAbout(expAbout)
+                .setId(10)
+                .setAbout("Test About")
                 .build();
 
-        Session expSession = Session
+        RequestSession expSession = RequestSession
                 .newBuilder()
-                .setId(expID)
+                .setId(expUser.getId())
                 .build();
 
-        ArgumentCaptor<String> sessionCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Integer> idCaptor = ArgumentCaptor.forClass(Integer.class);
         ArgumentCaptor<String> aboutCaptor = ArgumentCaptor.forClass(String.class);
 
-        when(sessionManager.parseRequestToken(sessionCaptor.capture())).thenReturn(expSession);
-        when(usersDatabase.update(idCaptor.capture(), aboutCaptor.capture())).thenReturn(expUser);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(expSession);
+        when(usersDatabase.update(anyInt(), anyString())).thenReturn(expUser);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "Bearer " + expSessionString);
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         UserUpdateAboutRequest req = UserUpdateAboutRequest
                 .newBuilder()
-                .setId(expID)
-                .setAbout(expAbout)
+                .setId(10)
+                .setAbout(expUser.getAbout())
                 .build();
 
-        User res = inProcessStub.updateAbout(req);
+        User resUser = inProcessStub.updateAbout(req);
 
-        assertThat(res).isNotNull();
-        assertThat(res.getId()).isEqualTo(expID);
-        assertThat(res.getAbout()).matches(expAbout);
+        verify(usersDatabase).update(idCaptor.capture(), aboutCaptor.capture());
 
-        assertThat(sessionCaptor.getValue()).matches(expSessionString);
-        assertThat(idCaptor.getValue()).isEqualTo(expID);
-        assertThat(aboutCaptor.getValue()).matches(expAbout);
+        assertThat(idCaptor.getValue()).isEqualTo(expUser.getId());
+        assertThat(aboutCaptor.getValue()).isEqualTo(expUser.getAbout());
+
+        assertThat(resUser).isNotNull();
+        assertThat(resUser).isEqualTo(expUser);
     }
 
     @Test
     public void deleteCorrect() {
-        int expID = 10;
-
-        String expSessionString = "Session String";
-
         User expUser = User
                 .newBuilder()
-                .setId(expID)
+                .setId(10)
                 .build();
 
-        Session expSession = Session
+        RequestSession session = RequestSession
                 .newBuilder()
-                .setId(expID)
+                .setId(expUser.getId())
                 .build();
 
-        ArgumentCaptor<String> sessionCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Integer> idCaptor = ArgumentCaptor.forClass(Integer.class);
 
-        when(sessionManager.parseRequestToken(sessionCaptor.capture())).thenReturn(expSession);
-        when(usersDatabase.delete(idCaptor.capture())).thenReturn(expUser);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(usersDatabase.delete(anyInt())).thenReturn(expUser);
 
         Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), "Bearer " + expSessionString);
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
         UserDeleteRequest req = UserDeleteRequest
                 .newBuilder()
-                .setId(expID)
+                .setId(expUser.getId())
                 .build();
 
-        User res = inProcessStub.delete(req);
+        User resUser = inProcessStub.delete(req);
 
-        assertThat(res).isNotNull();
-        assertThat(res.getId()).isEqualTo(expID);
+        verify(usersDatabase).delete(idCaptor.capture());
 
-        assertThat(sessionCaptor.getValue()).matches(expSessionString);
-        assertThat(idCaptor.getValue()).isEqualTo(expID);
+        assertThat(idCaptor.getValue()).isEqualTo(expUser.getId());
+
+        assertThat(resUser).isNotNull();
+        assertThat(resUser).isEqualTo(expUser);
     }
 
 }
