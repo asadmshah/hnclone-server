@@ -3,14 +3,14 @@ package com.asadmshah.hnclone.server.endpoints
 import com.asadmshah.hnclone.common.sessions.ExpiredTokenException
 import com.asadmshah.hnclone.common.sessions.InvalidTokenException
 import com.asadmshah.hnclone.common.sessions.SessionManager
+import com.asadmshah.hnclone.errors.CommonServiceErrors
+import com.asadmshah.hnclone.errors.SessionsServiceErrors
 import com.asadmshah.hnclone.models.SessionCreateRequest
 import com.asadmshah.hnclone.models.SessionCreateResponse
 import com.asadmshah.hnclone.models.SessionToken
 import com.asadmshah.hnclone.server.ServerComponent
-import com.asadmshah.hnclone.server.database.UserExistsException
 import com.asadmshah.hnclone.server.database.UsersDatabase
 import com.asadmshah.hnclone.services.SessionsServiceGrpc
-import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import java.sql.SQLException
 
@@ -37,9 +37,9 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
             responseObserver.onNext(sessions.createRequestToken(session.id))
             responseObserver.onCompleted()
         } catch (e: ExpiredTokenException) {
-            responseObserver.onError(Status.PERMISSION_DENIED.withDescription("Expired Token").asRuntimeException())
+            responseObserver.onError(SessionsServiceErrors.ExpiredTokenException)
         } catch (e: InvalidTokenException) {
-            responseObserver.onError(Status.PERMISSION_DENIED.withDescription("Invalid Token").asRuntimeException())
+            responseObserver.onError(SessionsServiceErrors.InvalidTokenException)
         }
     }
 
@@ -47,7 +47,7 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             val user = usersDatabase.read(request.username, request.password)
             if (user == null) {
-                responseObserver.onError(Status.INTERNAL.withDescription("An error occurred. Unable to create account.").asRuntimeException())
+                responseObserver.onError(SessionsServiceErrors.UserNotFoundException)
                 return
             }
 
@@ -57,10 +57,8 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
             val response = SessionCreateResponse.newBuilder().setRequest(sreq).setRefresh(sref).build()
             responseObserver.onNext(response)
             responseObserver.onCompleted()
-        } catch (e: UserExistsException) {
-            responseObserver.onError(Status.ALREADY_EXISTS.withDescription("Username exists").asRuntimeException())
         } catch (e: SQLException) {
-            responseObserver.onError(Status.INTERNAL.withDescription("An error occurred. A SQL error occurred.").asRuntimeException())
+            responseObserver.onError(CommonServiceErrors.UnknownException)
         }
     }
 }
