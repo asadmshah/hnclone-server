@@ -1,14 +1,18 @@
 package com.asadmshah.hnclone.server.endpoints;
 
 import com.asadmshah.hnclone.common.sessions.SessionManager;
+import com.asadmshah.hnclone.errors.CommonServiceErrors;
+import com.asadmshah.hnclone.errors.UsersServiceErrors;
 import com.asadmshah.hnclone.models.*;
 import com.asadmshah.hnclone.server.ServerComponent;
+import com.asadmshah.hnclone.server.database.UserExistsException;
 import com.asadmshah.hnclone.server.database.UsersDatabase;
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor;
 import com.asadmshah.hnclone.services.UsersServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.Server;
+import io.grpc.StatusRuntimeException;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.MetadataUtils;
@@ -19,6 +23,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.sql.SQLException;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -66,7 +72,52 @@ public class UsersServiceEndpointTest {
     }
 
     @Test
-    public void createUserCorrect() {
+    public void create_shouldThrowUserExistsException() {
+        when(usersDatabase.create(anyString(), anyString(), anyString())).thenThrow(UserExistsException.class);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.create(UserCreateRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getExists().getDescription());
+    }
+
+    @Test
+    public void create_shouldThrowSQLException() {
+        when(usersDatabase.create(anyString(), anyString(), anyString())).thenThrow(SQLException.class);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.create(UserCreateRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void create_shouldThrowUnknownException() {
+        when(usersDatabase.create(anyString(), anyString(), anyString())).thenReturn(null);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.create(UserCreateRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void create_shouldComplete() {
         String expName = "Test Name";
         String expPass = "Text Pass";
         String expAbout = "Text About";
@@ -101,7 +152,37 @@ public class UsersServiceEndpointTest {
     }
 
     @Test
-    public void readUsingIDCorrect() {
+    public void readUsingID_shouldThrowSQLException() {
+        when(usersDatabase.read(anyInt())).thenThrow(SQLException.class);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readUsingID(UserReadUsingIDRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readUsingID_shouldThrowNotFoundException() {
+        when(usersDatabase.read(anyInt())).thenReturn(null);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readUsingID(UserReadUsingIDRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getNotFound().getDescription());
+    }
+
+    @Test
+    public void readUsingID_shouldComplete() {
         User exp = User
                 .newBuilder()
                 .setId(10)
@@ -125,7 +206,37 @@ public class UsersServiceEndpointTest {
     }
 
     @Test
-    public void readUsingNameCorrect() {
+    public void readUsingName_shouldThrowSQLException() {
+        when(usersDatabase.read(anyString())).thenThrow(SQLException.class);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readUsingName(UserReadUsingNameRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readUsingName_shouldThrowNotFoundException() {
+        when(usersDatabase.read(anyString())).thenReturn(null);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readUsingName(UserReadUsingNameRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getNotFound().getDescription());
+    }
+
+    @Test
+    public void readUsingName_shouldComplete() {
         User exp = User
                 .newBuilder()
                 .setName("Test User")
@@ -149,7 +260,60 @@ public class UsersServiceEndpointTest {
     }
 
     @Test
-    public void updateAboutCorrect() {
+    public void updateAbout_shouldThrowUnauthenticatedException() {
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.updateAbout(UserUpdateAboutRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+    }
+
+    @Test
+    public void updateAbout_shouldThrowUnknownException() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(usersDatabase.update(anyInt(), anyString())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.updateAbout(UserUpdateAboutRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void updateAbout_shouldThrowNotFoundException() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(usersDatabase.update(anyInt(), anyString())).thenReturn(null);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.updateAbout(UserUpdateAboutRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getNotFound().getDescription());
+    }
+
+    @Test
+    public void updateAbout_shouldComplete() {
         User expUser = User
                 .newBuilder()
                 .setId(10)
@@ -189,7 +353,60 @@ public class UsersServiceEndpointTest {
     }
 
     @Test
-    public void deleteCorrect() {
+    public void delete_shouldThrowUnauthenticatedException() {
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.delete(UserDeleteRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+    }
+
+    @Test
+    public void delete_shouldThrowUnknownException() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(usersDatabase.delete(anyInt())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.delete(UserDeleteRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void delete_notFoundException() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+        when(usersDatabase.delete(anyInt())).thenReturn(null);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.delete(UserDeleteRequest.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getNotFound().getDescription());
+    }
+
+    @Test
+    public void delete_shouldComplete() {
         User expUser = User
                 .newBuilder()
                 .setId(10)

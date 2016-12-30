@@ -1,5 +1,7 @@
 package com.asadmshah.hnclone.server.endpoints
 
+import com.asadmshah.hnclone.errors.CommonServiceErrors
+import com.asadmshah.hnclone.errors.UsersServiceErrors
 import com.asadmshah.hnclone.models.*
 import com.asadmshah.hnclone.server.ServerComponent
 import com.asadmshah.hnclone.server.database.UserExistsException
@@ -9,7 +11,6 @@ import com.asadmshah.hnclone.services.UsersServiceGrpc
 import io.grpc.Context
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
-import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import java.sql.SQLException
 
@@ -32,88 +33,108 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     }
 
     override fun create(request: UserCreateRequest, responseObserver: StreamObserver<User>) {
+        val user: User?
         try {
-            val user = usersDatabase.create(request.name, request.pass, request.about ?: "")
-            if (user == null) {
-                responseObserver.onError(Status.INTERNAL.withDescription("An error occurred.").asRuntimeException())
-                return
-            }
-            responseObserver.onNext(user)
-            responseObserver.onCompleted()
+            user = usersDatabase.create(request.name, request.pass, request.about ?: "")
         } catch (e: UserExistsException) {
-            responseObserver.onError(Status.ALREADY_EXISTS.withDescription("Username already exists.").asRuntimeException())
+            responseObserver.onError(UsersServiceErrors.ExistsException)
+            return
         } catch (e: SQLException) {
-            responseObserver.onError(Status.INTERNAL.withDescription("An error occurred.").asRuntimeException())
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
         }
+
+        if (user == null) {
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
+        }
+
+        responseObserver.onNext(user)
+        responseObserver.onCompleted()
     }
 
     override fun readUsingID(request: UserReadUsingIDRequest, responseObserver: StreamObserver<User>) {
+        val user: User?
         try {
-            val user = usersDatabase.read(request.id)
-            if (user == null) {
-                responseObserver.onError(Status.NOT_FOUND.withDescription("User not found.").asRuntimeException())
-                return
-            }
-            responseObserver.onNext(user)
-            responseObserver.onCompleted()
+            user = usersDatabase.read(request.id)
         } catch (e: SQLException) {
-            responseObserver.onError(Status.INTERNAL.withDescription("An error occurred.").asRuntimeException())
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
         }
+
+        if (user == null) {
+            responseObserver.onError(UsersServiceErrors.NotFoundException)
+            return
+        }
+
+        responseObserver.onNext(user)
+        responseObserver.onCompleted()
     }
 
     override fun readUsingName(request: UserReadUsingNameRequest, responseObserver: StreamObserver<User>) {
+        val user: User?
         try {
-            val user = usersDatabase.read(request.name)
-            if (user == null) {
-                responseObserver.onError(Status.NOT_FOUND.withDescription("User not found.").asRuntimeException())
-                return
-            }
-            responseObserver.onNext(user)
-            responseObserver.onCompleted()
+            user = usersDatabase.read(request.name)
         } catch (e: SQLException) {
-            responseObserver.onError(Status.INTERNAL.withDescription("An error occurred.").asRuntimeException())
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
         }
+
+        if (user == null) {
+            responseObserver.onError(UsersServiceErrors.NotFoundException)
+            return
+        }
+
+        responseObserver.onNext(user)
+        responseObserver.onCompleted()
     }
 
     override fun updateAbout(request: UserUpdateAboutRequest, responseObserver: StreamObserver<User>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {
-            responseObserver.onError(Status.UNAUTHENTICATED.withDescription("Unauthenticated").asRuntimeException())
+            responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
             return
         }
 
+        val user: User?
         try {
-            val user = usersDatabase.update(session.id, request.about)
-            if (user == null) {
-                responseObserver.onError(Status.NOT_FOUND.withDescription("User not found.").asRuntimeException())
-                return
-            }
-            responseObserver.onNext(user)
-            responseObserver.onCompleted()
+            user = usersDatabase.update(session.id, request.about)
         } catch (e: SQLException) {
-            responseObserver.onError(Status.INTERNAL.withDescription("An error occurred.").asRuntimeException())
+            responseObserver.onError(CommonServiceErrors.UnknownException)
+            return
         }
+
+        if (user == null) {
+            responseObserver.onError(UsersServiceErrors.NotFoundException)
+            return
+        }
+
+        responseObserver.onNext(user)
+        responseObserver.onCompleted()
     }
 
     override fun delete(request: UserDeleteRequest, responseObserver: StreamObserver<User>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {
-            responseObserver.onError(Status.UNAUTHENTICATED.withDescription("Unauthenticated").asRuntimeException())
+            responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
             return
         }
 
+        val user: User?
         try {
-            val user = usersDatabase.delete(session.id)
-            if (user == null) {
-                responseObserver.onError(Status.NOT_FOUND.withDescription("User not found.").asRuntimeException())
-                return
-            }
-            responseObserver.onNext(user)
-            responseObserver.onCompleted()
+            user = usersDatabase.delete(session.id)
         } catch (e: SQLException) {
-            responseObserver.onError(Status.INTERNAL.withDescription("An error occurred.").asRuntimeException())
+            responseObserver.onError(CommonServiceErrors.UnknownException)
             return
         }
+
+        if (user == null) {
+            responseObserver.onError(UsersServiceErrors.NotFoundException)
+            return
+        }
+
+        responseObserver.onNext(user)
+        responseObserver.onCompleted()
     }
 
 }
