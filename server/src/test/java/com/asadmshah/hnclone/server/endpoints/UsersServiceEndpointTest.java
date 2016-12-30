@@ -16,6 +16,8 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.MetadataUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,12 +74,142 @@ public class UsersServiceEndpointTest {
     }
 
     @Test
-    public void create_shouldThrowUserExistsException() {
-        when(usersDatabase.create(anyString(), anyString(), anyString())).thenThrow(UserExistsException.class);
+    public void create_shouldThrowUsernameRequiredOnEmptyUsernameException() {
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName("")
+                .setPass("Test")
+                .build();
 
         StatusRuntimeException exception = null;
         try {
-            inProcessStub.create(UserCreateRequest.getDefaultInstance());
+            inProcessStub.create(request);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getUsernameRequired().getDescription());
+    }
+
+    @Test
+    public void create_shouldThrowUsernameInvalidExceptionOnTooLongUsername() {
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName(StringUtils.repeat("T", 33))
+                .setPass("Test")
+                .build();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.create(request);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getUsernameInvalid().getDescription());
+    }
+
+    @Test
+    public void create_shouldThrowUsernameInvalidExceptionOnBadUsername() {
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName("hunter_$@#")
+                .setPass("Test")
+                .build();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.create(request);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getUsernameInvalid().getDescription());
+    }
+
+    @Test
+    public void create_shouldEscapeInputs() {
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName("hunter_123")
+                .setPass("password")
+                .setAbout("'; DELETE FROM users WHERE 1=1; <script>alert(\"Hello world\");</script>")
+                .build();
+
+        String expName = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getName()));
+        String expPass = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getPass()));
+        String expAbout = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getAbout()));
+
+        User expUser = User
+                .newBuilder()
+                .setName(expName)
+                .setAbout(expAbout)
+                .build();
+
+        when(usersDatabase.create(anyString(), anyString(), anyString())).thenReturn(expUser);
+
+        User resUser = inProcessStub.create(request);
+
+        verify(usersDatabase).create(expName, expPass, expAbout);
+
+        assertThat(resUser).isEqualTo(expUser);
+    }
+
+    @Test
+    public void create_shouldThrowInvalidPasswordException() {
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName("testuser")
+                .setPass("")
+                .build();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.create(request);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getPasswordInsecure().getDescription());
+    }
+
+    @Test
+    public void create_shouldThrowAboutTooLongException() {
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName("testuser")
+                .setPass("testpassword")
+                .setAbout(StringUtils.repeat("A", 513))
+                .build();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.create(request);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getAboutTooLong().getDescription());
+    }
+
+    @Test
+    public void create_shouldThrowUserExistsException() {
+        when(usersDatabase.create(anyString(), anyString(), anyString())).thenThrow(UserExistsException.class);
+
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName("username")
+                .setPass("password")
+                .build();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
             exception = e;
         }
@@ -90,9 +222,15 @@ public class UsersServiceEndpointTest {
     public void create_shouldThrowSQLException() {
         when(usersDatabase.create(anyString(), anyString(), anyString())).thenThrow(SQLException.class);
 
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName("username")
+                .setPass("password")
+                .build();
+
         StatusRuntimeException exception = null;
         try {
-            inProcessStub.create(UserCreateRequest.getDefaultInstance());
+            inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
             exception = e;
         }
@@ -105,9 +243,15 @@ public class UsersServiceEndpointTest {
     public void create_shouldThrowUnknownException() {
         when(usersDatabase.create(anyString(), anyString(), anyString())).thenReturn(null);
 
+        UserCreateRequest request = UserCreateRequest
+                .newBuilder()
+                .setName("username")
+                .setPass("password")
+                .build();
+
         StatusRuntimeException exception = null;
         try {
-            inProcessStub.create(UserCreateRequest.getDefaultInstance());
+            inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
             exception = e;
         }
@@ -118,8 +262,8 @@ public class UsersServiceEndpointTest {
 
     @Test
     public void create_shouldComplete() {
-        String expName = "Test Name";
-        String expPass = "Text Pass";
+        String expName = "hunter_123";
+        String expPass = "password";
         String expAbout = "Text About";
 
         User expUser = User
@@ -313,12 +457,38 @@ public class UsersServiceEndpointTest {
     }
 
     @Test
+    public void updateAbout_shouldThrowTooLongException() {
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        UserUpdateAboutRequest req = UserUpdateAboutRequest
+                .newBuilder()
+                .setAbout(StringUtils.repeat("A", 513))
+                .build();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.updateAbout(req);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getAboutTooLong().getDescription());
+    }
+
+    @Test
     public void updateAbout_shouldComplete() {
         User expUser = User
                 .newBuilder()
                 .setId(10)
-                .setAbout("Test About")
+                .setAbout("'; DELETE FROM users WHERE 1=1; <script>alert(\"Hello world\");</script>")
                 .build();
+
+        String expAbout = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(expUser.getAbout()));
 
         RequestSession expSession = RequestSession
                 .newBuilder()
@@ -345,7 +515,7 @@ public class UsersServiceEndpointTest {
         verify(usersDatabase).update(idCaptor.capture(), aboutCaptor.capture());
 
         assertThat(idCaptor.getValue()).isEqualTo(expUser.getId());
-        assertThat(aboutCaptor.getValue()).isEqualTo(expUser.getAbout());
+        assertThat(aboutCaptor.getValue()).isEqualTo(expAbout);
 
         assertThat(resUser).isNotNull();
         assertThat(resUser).isEqualTo(expUser);

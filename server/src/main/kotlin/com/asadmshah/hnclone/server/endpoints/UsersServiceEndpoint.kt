@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.server.endpoints
 
+import com.asadmshah.hnclone.common.tools.escape
 import com.asadmshah.hnclone.errors.CommonServiceErrors
 import com.asadmshah.hnclone.errors.UsersServiceErrors
 import com.asadmshah.hnclone.models.*
@@ -12,7 +13,9 @@ import io.grpc.Context
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
 import io.grpc.stub.StreamObserver
+import org.apache.commons.lang3.StringUtils
 import java.sql.SQLException
+import java.util.regex.Pattern
 
 class UsersServiceEndpoint private constructor(component: ServerComponent) : UsersServiceGrpc.UsersServiceImplBase() {
 
@@ -24,6 +27,8 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
 
             return ServerInterceptors.intercept(endpoint, interceptor)
         }
+
+        private val patternUsername = Pattern.compile("^\\w{0,32}$")
     }
 
     private val usersDatabase: UsersDatabase
@@ -33,9 +38,37 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     }
 
     override fun create(request: UserCreateRequest, responseObserver: StreamObserver<User>) {
+        val username = if (request.name.isNullOrBlank()) null else request.name.trim().escape()
+        if (username == null) {
+            responseObserver.onError(UsersServiceErrors.UsernameRequiredException)
+            return
+        }
+
+        if (StringUtils.containsWhitespace(username)) {
+            responseObserver.onError(UsersServiceErrors.UsernameInvalidException)
+            return
+        }
+
+        if (!patternUsername.matcher(username).matches()) {
+            responseObserver.onError(UsersServiceErrors.UsernameInvalidException)
+            return
+        }
+
+        val password = if (request.pass.isNullOrBlank()) null else request.pass.trim().escape()
+        if (password == null || password.isBlank()) {
+            responseObserver.onError(UsersServiceErrors.PasswordInsecureException)
+            return
+        }
+
+        val about = if (request.about.isNullOrBlank()) "" else request.about.trim().escape()
+        if (about.length > 512) {
+            responseObserver.onError(UsersServiceErrors.AboutTooLongException)
+            return
+        }
+
         val user: User?
         try {
-            user = usersDatabase.create(request.name, request.pass, request.about ?: "")
+            user = usersDatabase.create(username, password, about)
         } catch (e: UserExistsException) {
             responseObserver.onError(UsersServiceErrors.ExistsException)
             return
@@ -96,9 +129,15 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
             return
         }
 
+        val about = if (request.about.isNullOrBlank()) "" else request.about.trim().escape()
+        if (about.length > 512) {
+            responseObserver.onError(UsersServiceErrors.AboutTooLongException)
+            return
+        }
+
         val user: User?
         try {
-            user = usersDatabase.update(session.id, request.about)
+            user = usersDatabase.update(session.id, about)
         } catch (e: SQLException) {
             responseObserver.onError(CommonServiceErrors.UnknownException)
             return
