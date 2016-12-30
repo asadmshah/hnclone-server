@@ -337,7 +337,6 @@ public class UsersServiceEndpointTest {
 
         UserUpdateAboutRequest req = UserUpdateAboutRequest
                 .newBuilder()
-                .setId(10)
                 .setAbout(expUser.getAbout())
                 .build();
 
@@ -426,10 +425,7 @@ public class UsersServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        UserDeleteRequest req = UserDeleteRequest
-                .newBuilder()
-                .setId(expUser.getId())
-                .build();
+        UserDeleteRequest req = UserDeleteRequest.getDefaultInstance();
 
         User resUser = inProcessStub.delete(req);
 
