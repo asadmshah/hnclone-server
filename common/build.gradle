@@ -15,8 +15,4 @@ dependencies {
 
     compile group: 'com.google.dagger', name: 'dagger', version: "$dagger_version"
     kapt    group: 'com.google.dagger', name: 'dagger-compiler', version: "$dagger_version"
-
-//    compile group: 'io.grpc', name: 'grpc-all', version: "$grpc_version"
-
-    compile group: 'io.jsonwebtoken', name: 'jjwt', version: '0.7.0'
 }
