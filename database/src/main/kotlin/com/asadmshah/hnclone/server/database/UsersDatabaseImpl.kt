@@ -11,6 +11,8 @@ internal class UsersDatabaseImpl
 constructor(private val dataSource: DataSource) : UsersDatabase {
 
     companion object {
+        private val LOG_ROUNDS = 14
+
         //language=PostgreSQL
         private val SQL_CREATE_USER = "SELECT * FROM users_create_user(?, ?, ?);"
         //language=PostgreSQL
@@ -47,7 +49,7 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
 
             stmt = conn.prepareStatement(SQL_CREATE_USER)
             stmt.setString(1, name)
-            stmt.setString(2, BCrypt.hashpw(pass, BCrypt.gensalt()))
+            stmt.setString(2, BCrypt.hashpw(pass, BCrypt.gensalt(LOG_ROUNDS)))
             stmt.setString(3, about)
 
             rslt = stmt.executeQuery()
