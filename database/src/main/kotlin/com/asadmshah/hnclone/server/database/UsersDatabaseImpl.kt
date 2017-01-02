@@ -6,7 +6,6 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
-import java.time.ZoneOffset
 import javax.inject.Inject
 import javax.sql.DataSource
 
@@ -19,14 +18,13 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
     }
 
     internal fun resultSetToUserFull(resultSet: ResultSet): User {
-        return User
-                .newBuilder()
-                .setId(resultSet.getInt(1))
-                .setName(resultSet.getString(2))
-                .setDatetime(resultSet.getTimestamp(3).toLocalDateTime().toEpochSecond(ZoneOffset.UTC).toDouble())
-                .setKarma(resultSet.getInt(4))
-                .setAbout(resultSet.getString(5))
-                .build()
+        return User(
+                resultSet.getInt(1),
+                resultSet.getString(2),
+                resultSet.getTimestamp(3).toLocalDateTime(),
+                resultSet.getInt(4),
+                resultSet.getString(5)
+        )
     }
 
     override fun create(username: String, password: String, about: String): User? {

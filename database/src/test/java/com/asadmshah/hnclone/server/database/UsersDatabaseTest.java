@@ -1,51 +1,19 @@
 package com.asadmshah.hnclone.server.database;
 
 import com.asadmshah.hnclone.models.User;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.Statement;
-
 import static com.google.common.truth.Truth.assertThat;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class UsersDatabaseTest {
-
-    private DataSource dataSource;
+public class UsersDatabaseTest extends BaseDatabaseTest {
 
     @Before
     public void setUp() throws Exception {
-        Configuration configuration = new Configurations()
-                .properties(UsersDatabaseTest.class.getClassLoader().getResource("test.properties"));
-
-        DatabaseModule module = new DatabaseModule();
-        dataSource = module.providesDataSource(configuration);
-
-        Connection connection = null;
-        Statement statement = null;
-        try {
-            connection = dataSource.getConnection();
-            statement = connection.createStatement();
-            statement.execute("TRUNCATE users RESTART IDENTITY CASCADE;");
-        } finally {
-            if (statement != null) {
-                statement.close();
-            }
-            if (connection != null) {
-                connection.close();
-            }
-        }
-    }
-
-    @After
-    public void tearDown() throws Exception {
+        init();
     }
 
     @Test
