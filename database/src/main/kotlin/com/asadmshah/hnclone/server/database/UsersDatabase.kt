@@ -1,43 +1,20 @@
 package com.asadmshah.hnclone.server.database
 
 import com.asadmshah.hnclone.models.User
-import java.sql.SQLException
 
-/**
- *
- */
 interface UsersDatabase {
 
-    /**
-     * Creates a user.
-     *
-     * @param name Unique username.
-     * @param pass Password.
-     * @param about About. Defaults to empty string.
-     *
-     * @throws SQLException
-     * @throws UserExistsException
-     *
-     * @return [User] if successful, otherwise null.
-     */
-    fun create(name: String, pass: String, about: String = ""): User?
+    fun create(username: String, password: String, about: String = ""): User?
 
-    /**
-     * @throws SQLException
-     */
     fun read(id: Int): User?
 
-    /**
-     * @throws SQLException
-     */
-    fun read(name: String): User?
+    fun read(username: String): User?
 
-    /**
-     * @throws SQLException
-     */
-    fun read(name: String, pass: String): User?
+    fun read(username: String, password: String): User?
 
-    fun update(id: Int, about: String = ""): User?
+    fun updateAbout(id: Int, about: String = ""): String?
 
-    fun delete(id: Int): User?
+    fun updatePassword(id: Int, password: String): Boolean?
+
+    fun delete(id: Int): Boolean?
 }

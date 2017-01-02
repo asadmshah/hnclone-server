@@ -25,7 +25,6 @@ class DatabaseModule {
         hc.addDataSourceProperty("host", configuration.getString("database.host"))
         hc.addDataSourceProperty("port", configuration.getString("database.port"))
         hc.addDataSourceProperty("parsedSqlCacheSize", "256")
-        hc.addDataSourceProperty("preparedStatementCacheQueries", "256")
         return HikariDataSource(hc)
     }
 
