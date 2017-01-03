@@ -2,10 +2,8 @@ package com.asadmshah.hnclone.server.database
 
 import com.asadmshah.hnclone.models.User
 import org.mindrot.jbcrypt.BCrypt
-import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
-import java.sql.Statement
 import javax.inject.Inject
 import javax.sql.DataSource
 
@@ -17,93 +15,54 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
         private val LOG_ROUNDS = 14
     }
 
-    internal fun resultSetToUserFull(resultSet: ResultSet): User {
-        return User(
-                resultSet.getInt(1),
-                resultSet.getString(2),
-                resultSet.getTimestamp(3).toLocalDateTime(),
-                resultSet.getInt(4),
-                resultSet.getString(5)
-        )
-    }
-
     override fun create(username: String, password: String, about: String): User? {
         val hash = hashString(password)
 
         try {
-            return executeSingle("SELECT * FROM users_create('$username', '$hash', '$about');", {
-                resultSetToUserFull(it)
-            })
+            return dataSource
+                    .executeSingle("SELECT * FROM users_create('$username', '$hash', '$about');", { it.toUser() })
         } catch (e: SQLException) {
             when (e.sqlState) {
-                "23505"     -> throw UserExistsException()
-                else        -> throw e
+                "23505" -> throw UserExistsException()
+                else -> throw e
             }
         }
     }
 
     override fun read(id: Int): User? {
-        return executeSingle("SELECT * FROM users_read($id);", {
-            resultSetToUserFull(it)
-        })
+        return dataSource
+                .executeSingle("SELECT * FROM users_read($id);", { it.toUser() })
     }
 
     override fun read(username: String): User? {
-        return executeSingle("SELECT * FROM users_read('$username');", {
-            resultSetToUserFull(it)
-        })
+        return dataSource
+                .executeSingle("SELECT * FROM users_read('$username');", { it.toUser() })
     }
 
     override fun read(username: String, password: String): User? {
-        val good: Boolean? = executeSingle("SELECT * FROM users_read_password('$username');", {
-            BCrypt.checkpw(password, it.getString(1))
-        })
+        val good: Boolean? = dataSource
+                .executeSingle("SELECT * FROM users_read_password('$username');", {
+                    BCrypt.checkpw(password, it.getString(1))
+                })
 
         return if (good ?: false) read(username) else null
     }
 
     override fun updateAbout(id: Int, about: String): String? {
-        return executeSingle("SELECT * FROM users_update_about($id, '$about');", {
-            it.getString(1)
-        })
+        return dataSource
+                .executeSingle("SELECT * FROM users_update_about($id, '$about');", ResultSet::getString)
     }
 
     override fun updatePassword(id: Int, password: String): Boolean? {
         val hash = hashString(password)
 
-        return executeSingle("SELECT * FROM users_update_password($id, '$hash');", {
-            it.getBoolean(1)
-        })
+        return dataSource
+                .executeSingle("SELECT * FROM users_update_password($id, '$hash');", { it.toBoolean() })
     }
 
     override fun delete(id: Int): Boolean? {
-        return executeSingle("SELECT * FROM users_delete($id);", {
-            it.getBoolean(1)
-        })
-    }
-
-    internal fun <T> executeSingle(query: String, function: (rslt: ResultSet) -> T): T? {
-        var conn: Connection? = null
-        var stmt: Statement? = null
-        var rslt: ResultSet? = null
-        var response: T? = null
-
-        try {
-            conn = dataSource.connection
-
-            stmt = conn.createStatement()
-
-            rslt = stmt.executeQuery(query)
-            if (rslt != null && rslt.next()) {
-                response = function(rslt)
-            }
-        } finally {
-            try { rslt?.close() } catch (ignored: Exception) {  }
-            try { stmt?.close() } catch (ignored: Exception) {  }
-            try { conn?.close() } catch (ignored: Exception) {  }
-        }
-
-        return response
+        return dataSource
+                .executeSingle("SELECT * FROM users_delete($id);", { it.toBoolean() })
     }
 
     internal fun hashString(i: String): String {
