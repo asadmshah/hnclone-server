@@ -5,14 +5,14 @@ import com.asadmshah.hnclone.models.Session
 import com.asadmshah.hnclone.models.User
 import java.sql.ResultSet
 
-internal fun ResultSet.toSession(): Session {
+internal fun ResultSet.getSession(): Session {
     return Session(
             getInt(1),
             getString(2),
             getTimestamp(3).toLocalDateTime())
 }
 
-internal fun ResultSet.toUser(): User {
+internal fun ResultSet.getUser(): User {
     return User(
             getInt(1),
             getString(2),
@@ -21,7 +21,7 @@ internal fun ResultSet.toUser(): User {
             getString(5))
 }
 
-internal fun ResultSet.toPost(): Post {
+internal fun ResultSet.getPost(): Post {
     return Post(
             getInt(1),
             getTimestamp(2).toLocalDateTime(),
@@ -34,11 +34,11 @@ internal fun ResultSet.toPost(): Post {
             getInt(9))
 }
 
-internal fun ResultSet.toInt(): Int {
+internal fun ResultSet.getInt(): Int {
     return getInt(1)
 }
 
-internal fun ResultSet.toBoolean(): Boolean {
+internal fun ResultSet.getBoolean(): Boolean {
     return getBoolean(1)
 }
 
