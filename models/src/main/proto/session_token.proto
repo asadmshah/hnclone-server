@@ -6,10 +6,7 @@ option java_package = "com.asadmshah.hnclone.models";
 option java_multiple_files = true;
 option optimize_for = LITE_RUNTIME;
 
-message User {
-    uint32 id = 1;
-    string username = 2;
-    uint64 created = 3;
-    uint32 score = 4;
-    string about = 5;
+message SessionToken {
+    bytes data = 1;
+    bytes sign = 2;
 }

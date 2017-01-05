@@ -12,6 +12,36 @@ service UsersService {
     rpc Create (UserCreateRequest) returns (User);
     rpc ReadUsingID (UserReadUsingIDRequest) returns (User);
     rpc ReadUsingName (UserReadUsingNameRequest) returns (User);
-    rpc UpdateAbout (UserUpdateAboutRequest) returns (User);
-    rpc Delete (UserDeleteRequest) returns (User);
+    rpc UpdateAbout (UserUpdateAboutRequest) returns (UserUpdateAboutResponse);
+    rpc Delete (UserDeleteRequest) returns (UserDeleteResponse);
+}
+
+message UserCreateRequest {
+    string username = 1;
+    string password = 2;
+    string about = 3;
+}
+
+message UserReadUsingIDRequest {
+    uint32 id = 1;
+}
+
+message UserReadUsingNameRequest {
+    string username = 1;
+}
+
+message UserUpdateAboutRequest {
+    string about = 1;
+}
+
+message UserUpdateAboutResponse {
+    string about = 1;
+}
+
+message UserDeleteRequest {
+
+}
+
+message UserDeleteResponse {
+    bool deleted = 1;
 }

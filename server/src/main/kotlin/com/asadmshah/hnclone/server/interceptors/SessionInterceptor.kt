@@ -22,7 +22,7 @@ class SessionInterceptor private constructor(private val manager: SessionManager
         }
 
         @JvmStatic val HEADER_KEY: Metadata.Key<ByteArray> = Metadata.Key.of("authorization-bin", BINARY_BYTE_MARSHALLER)
-        @JvmStatic val KEY_SESSION: Context.Key<RequestSession?> = Context.key("session")
+        @JvmStatic val KEY_SESSION: Context.Key<RequestSession> = Context.key("session")
 
         private val STATUS_INVALID_TOKEN = Status.PERMISSION_DENIED.withDescription("Invalid Request Token.")
         private val STATUS_EXPIRED_TOKEN = Status.PERMISSION_DENIED.withDescription("Expired Request Token.")
@@ -45,6 +45,8 @@ class SessionInterceptor private constructor(private val manager: SessionManager
         }
 
         return Contexts.interceptCall(context, call, headers, next)
+
+        return Contexts.interceptCall(Context.current().withValue(KEY_SESSION, null), call, headers, next)
     }
 
 }

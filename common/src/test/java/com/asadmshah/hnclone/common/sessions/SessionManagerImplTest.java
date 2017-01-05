@@ -2,7 +2,6 @@ package com.asadmshah.hnclone.common.sessions;
 
 import com.asadmshah.hnclone.models.RefreshSession;
 import com.asadmshah.hnclone.models.RequestSession;
-import com.asadmshah.hnclone.models.SessionScope;
 import com.asadmshah.hnclone.models.SessionToken;
 import org.junit.After;
 import org.junit.Before;
@@ -144,9 +143,8 @@ public class SessionManagerImplTest {
         return RequestSession
                 .newBuilder()
                 .setId(id)
-                .setScope(SessionScope.USER)
-                .setIssuedDt(idt)
-                .setExpireDt(edt)
+                .setIssued(idt)
+                .setExpire(edt)
                 .build();
     }
 
@@ -154,9 +152,8 @@ public class SessionManagerImplTest {
         return RefreshSession
                 .newBuilder()
                 .setId(id)
-                .setScope(SessionScope.USER)
-                .setIssuedDt(idt)
-                .setExpireDt(edt)
+                .setIssued(idt)
+                .setExpire(edt)
                 .build();
     }
 }

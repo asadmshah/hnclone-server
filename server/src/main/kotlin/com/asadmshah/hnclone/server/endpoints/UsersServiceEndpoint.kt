@@ -3,12 +3,12 @@ package com.asadmshah.hnclone.server.endpoints
 import com.asadmshah.hnclone.common.tools.escape
 import com.asadmshah.hnclone.errors.CommonServiceErrors
 import com.asadmshah.hnclone.errors.UsersServiceErrors
-import com.asadmshah.hnclone.models.*
+import com.asadmshah.hnclone.models.User
 import com.asadmshah.hnclone.server.ServerComponent
 import com.asadmshah.hnclone.server.database.UserExistsException
 import com.asadmshah.hnclone.server.database.UsersDatabase
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor
-import com.asadmshah.hnclone.services.UsersServiceGrpc
+import com.asadmshah.hnclone.services.*
 import io.grpc.Context
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
@@ -38,7 +38,7 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     }
 
     override fun create(request: UserCreateRequest, responseObserver: StreamObserver<User>) {
-        val username = if (request.name.isNullOrBlank()) null else request.name.trim().escape()
+        val username = if (request.username.isNullOrBlank()) null else request.username.trim().escape()
         if (username == null) {
             responseObserver.onError(UsersServiceErrors.UsernameRequiredException)
             return
@@ -54,7 +54,7 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
             return
         }
 
-        val password = if (request.pass.isNullOrBlank()) null else request.pass.trim().escape()
+        val password = if (request.username.isNullOrBlank()) null else request.password.trim().escape()
         if (password == null || password.isBlank()) {
             responseObserver.onError(UsersServiceErrors.PasswordInsecureException)
             return
@@ -107,7 +107,7 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     override fun readUsingName(request: UserReadUsingNameRequest, responseObserver: StreamObserver<User>) {
         val user: User?
         try {
-            user = usersDatabase.read(request.name)
+            user = usersDatabase.read(request.username)
         } catch (e: SQLException) {
             responseObserver.onError(CommonServiceErrors.UnknownException)
             return
@@ -122,7 +122,7 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         responseObserver.onCompleted()
     }
 
-    override fun updateAbout(request: UserUpdateAboutRequest, responseObserver: StreamObserver<User>) {
+    override fun updateAbout(request: UserUpdateAboutRequest, responseObserver: StreamObserver<UserUpdateAboutResponse>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {
             responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
@@ -135,44 +135,50 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
             return
         }
 
-        val user: User?
+        var response: UserUpdateAboutResponse? = null
         try {
-            user = usersDatabase.update(session.id, about)
+            val s = usersDatabase.updateAbout(session.id, about)
+            if (s != null) {
+                response = UserUpdateAboutResponse.newBuilder().setAbout(s).build()
+            }
         } catch (e: SQLException) {
             responseObserver.onError(CommonServiceErrors.UnknownException)
             return
         }
 
-        if (user == null) {
-            responseObserver.onError(UsersServiceErrors.NotFoundException)
+        if (response == null) {
+            responseObserver.onError(CommonServiceErrors.UnknownException)
             return
         }
 
-        responseObserver.onNext(user)
+        responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
 
-    override fun delete(request: UserDeleteRequest, responseObserver: StreamObserver<User>) {
+    override fun delete(request: UserDeleteRequest, responseObserver: StreamObserver<UserDeleteResponse>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {
             responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
             return
         }
 
-        val user: User?
+        var response: UserDeleteResponse? = null
         try {
-            user = usersDatabase.delete(session.id)
+            val d = usersDatabase.delete(session.id)
+            if (d != null) {
+                response = UserDeleteResponse.newBuilder().setDeleted(d).build()
+            }
         } catch (e: SQLException) {
             responseObserver.onError(CommonServiceErrors.UnknownException)
             return
         }
 
-        if (user == null) {
-            responseObserver.onError(UsersServiceErrors.NotFoundException)
+        if (response == null) {
+            responseObserver.onError(CommonServiceErrors.UnknownException)
             return
         }
 
-        responseObserver.onNext(user)
+        responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
 

@@ -1,24 +1,28 @@
 package com.asadmshah.hnclone.server.database
 
 import com.asadmshah.hnclone.models.Post
-import com.asadmshah.hnclone.models.Session
+import com.asadmshah.hnclone.models.RefreshSession
 import com.asadmshah.hnclone.models.User
 import java.sql.ResultSet
+import java.time.ZoneOffset
 
-internal fun ResultSet.getSession(): Session {
-    return Session(
-            getInt(1),
-            getString(2),
-            getTimestamp(3).toLocalDateTime())
+internal fun ResultSet.getRefreshSession(): RefreshSession {
+    return RefreshSession
+            .newBuilder()
+            .setId(getInt(1))
+            .setUuid(getString(2))
+            .setIssued(getTimestamp(3).toLocalDateTime().toEpochSecond(ZoneOffset.UTC))
+            .build()
 }
 
 internal fun ResultSet.getUser(): User {
-    return User(
-            getInt(1),
-            getString(2),
-            getTimestamp(3).toLocalDateTime(),
-            getInt(4),
-            getString(5))
+    return User.newBuilder()
+            .setId(getInt(1))
+            .setUsername(getString(2))
+            .setCreated(getTimestamp(3).toLocalDateTime().toEpochSecond(ZoneOffset.UTC))
+            .setScore(getInt(4))
+            .setAbout(getString(5))
+            .build()
 }
 
 internal fun ResultSet.getPost(): Post {

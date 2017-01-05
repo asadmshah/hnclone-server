@@ -3,12 +3,13 @@ package com.asadmshah.hnclone.server.endpoints;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.errors.CommonServiceErrors;
 import com.asadmshah.hnclone.errors.UsersServiceErrors;
-import com.asadmshah.hnclone.models.*;
+import com.asadmshah.hnclone.models.RequestSession;
+import com.asadmshah.hnclone.models.User;
 import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.database.UserExistsException;
 import com.asadmshah.hnclone.server.database.UsersDatabase;
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor;
-import com.asadmshah.hnclone.services.UsersServiceGrpc;
+import com.asadmshah.hnclone.services.*;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.Server;
@@ -77,8 +78,8 @@ public class UsersServiceEndpointTest {
     public void create_shouldThrowUsernameRequiredOnEmptyUsernameException() {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName("")
-                .setPass("Test")
+                .setUsername("")
+                .setPassword("Test")
                 .build();
 
         StatusRuntimeException exception = null;
@@ -96,8 +97,8 @@ public class UsersServiceEndpointTest {
     public void create_shouldThrowUsernameInvalidExceptionOnTooLongUsername() {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName(StringUtils.repeat("T", 33))
-                .setPass("Test")
+                .setUsername(StringUtils.repeat("T", 33))
+                .setPassword("Test")
                 .build();
 
         StatusRuntimeException exception = null;
@@ -115,8 +116,8 @@ public class UsersServiceEndpointTest {
     public void create_shouldThrowUsernameInvalidExceptionOnBadUsername() {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName("hunter_$@#")
-                .setPass("Test")
+                .setUsername("hunter_$@#")
+                .setPassword("Test")
                 .build();
 
         StatusRuntimeException exception = null;
@@ -134,18 +135,18 @@ public class UsersServiceEndpointTest {
     public void create_shouldEscapeInputs() {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName("hunter_123")
-                .setPass("password")
+                .setUsername("hunter_123")
+                .setPassword("password")
                 .setAbout("'; DELETE FROM users WHERE 1=1; <script>alert(\"Hello world\");</script>")
                 .build();
 
-        String expName = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getName()));
-        String expPass = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getPass()));
+        String expName = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getUsername()));
+        String expPass = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getPassword()));
         String expAbout = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getAbout()));
 
         User expUser = User
                 .newBuilder()
-                .setName(expName)
+                .setUsername(expName)
                 .setAbout(expAbout)
                 .build();
 
@@ -162,8 +163,8 @@ public class UsersServiceEndpointTest {
     public void create_shouldThrowInvalidPasswordException() {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName("testuser")
-                .setPass("")
+                .setUsername("testuser")
+                .setPassword("")
                 .build();
 
         StatusRuntimeException exception = null;
@@ -181,8 +182,8 @@ public class UsersServiceEndpointTest {
     public void create_shouldThrowAboutTooLongException() {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName("testuser")
-                .setPass("testpassword")
+                .setUsername("testuser")
+                .setPassword("testpassword")
                 .setAbout(StringUtils.repeat("A", 513))
                 .build();
 
@@ -203,8 +204,8 @@ public class UsersServiceEndpointTest {
 
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName("username")
-                .setPass("password")
+                .setUsername("username")
+                .setPassword("password")
                 .build();
 
         StatusRuntimeException exception = null;
@@ -224,8 +225,8 @@ public class UsersServiceEndpointTest {
 
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName("username")
-                .setPass("password")
+                .setUsername("username")
+                .setPassword("password")
                 .build();
 
         StatusRuntimeException exception = null;
@@ -245,8 +246,8 @@ public class UsersServiceEndpointTest {
 
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
-                .setName("username")
-                .setPass("password")
+                .setUsername("username")
+                .setPassword("password")
                 .build();
 
         StatusRuntimeException exception = null;
@@ -268,14 +269,14 @@ public class UsersServiceEndpointTest {
 
         User expUser = User
                 .newBuilder()
-                .setName(expName)
+                .setUsername(expName)
                 .setAbout(expAbout)
                 .build();
 
         UserCreateRequest req = UserCreateRequest
                 .newBuilder()
-                .setName(expName)
-                .setPass(expPass)
+                .setUsername(expName)
+                .setPassword(expPass)
                 .setAbout(expAbout)
                 .build();
 
@@ -383,7 +384,7 @@ public class UsersServiceEndpointTest {
     public void readUsingName_shouldComplete() {
         User exp = User
                 .newBuilder()
-                .setName("Test User")
+                .setUsername("Test User")
                 .build();
 
         ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
@@ -392,15 +393,15 @@ public class UsersServiceEndpointTest {
 
         UserReadUsingNameRequest req = UserReadUsingNameRequest
                 .newBuilder()
-                .setName(exp.getName())
+                .setUsername(exp.getUsername())
                 .build();
 
         User res = inProcessStub.readUsingName(req);
 
         assertThat(res).isNotNull();
-        assertThat(res.getName()).isEqualTo(exp.getName());
+        assertThat(res.getUsername()).isEqualTo(exp.getUsername());
 
-        assertThat(nameCaptor.getValue()).matches(exp.getName());
+        assertThat(nameCaptor.getValue()).matches(exp.getUsername());
     }
 
     @Test
@@ -419,7 +420,7 @@ public class UsersServiceEndpointTest {
     @Test
     public void updateAbout_shouldThrowUnknownException() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
-        when(usersDatabase.update(anyInt(), anyString())).thenThrow(SQLException.class);
+        when(usersDatabase.updateAbout(anyInt(), anyString())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -439,7 +440,7 @@ public class UsersServiceEndpointTest {
     @Test
     public void updateAbout_shouldThrowNotFoundException() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
-        when(usersDatabase.update(anyInt(), anyString())).thenReturn(null);
+        when(usersDatabase.updateAbout(anyInt(), anyString())).thenReturn(null);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -453,7 +454,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
     }
 
     @Test
@@ -499,7 +500,7 @@ public class UsersServiceEndpointTest {
         ArgumentCaptor<String> aboutCaptor = ArgumentCaptor.forClass(String.class);
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(expSession);
-        when(usersDatabase.update(anyInt(), anyString())).thenReturn(expUser);
+        when(usersDatabase.updateAbout(anyInt(), anyString())).thenReturn(expUser.getAbout());
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -510,15 +511,15 @@ public class UsersServiceEndpointTest {
                 .setAbout(expUser.getAbout())
                 .build();
 
-        User resUser = inProcessStub.updateAbout(req);
+        UserUpdateAboutResponse resResponse = inProcessStub.updateAbout(req);
 
-        verify(usersDatabase).update(idCaptor.capture(), aboutCaptor.capture());
+        verify(usersDatabase).updateAbout(idCaptor.capture(), aboutCaptor.capture());
 
         assertThat(idCaptor.getValue()).isEqualTo(expUser.getId());
         assertThat(aboutCaptor.getValue()).isEqualTo(expAbout);
 
-        assertThat(resUser).isNotNull();
-        assertThat(resUser).isEqualTo(expUser);
+        assertThat(resResponse).isNotNull();
+        assertThat(resResponse.getAbout()).isEqualTo(expUser.getAbout());
     }
 
     @Test
@@ -571,7 +572,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
     }
 
     @Test
@@ -589,7 +590,7 @@ public class UsersServiceEndpointTest {
         ArgumentCaptor<Integer> idCaptor = ArgumentCaptor.forClass(Integer.class);
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(usersDatabase.delete(anyInt())).thenReturn(expUser);
+        when(usersDatabase.delete(anyInt())).thenReturn(true);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -597,14 +598,14 @@ public class UsersServiceEndpointTest {
 
         UserDeleteRequest req = UserDeleteRequest.getDefaultInstance();
 
-        User resUser = inProcessStub.delete(req);
+        UserDeleteResponse res = inProcessStub.delete(req);
 
         verify(usersDatabase).delete(idCaptor.capture());
 
         assertThat(idCaptor.getValue()).isEqualTo(expUser.getId());
 
-        assertThat(resUser).isNotNull();
-        assertThat(resUser).isEqualTo(expUser);
+        assertThat(res).isNotNull();
+        assertThat(res.getDeleted()).isTrue();
     }
 
 }

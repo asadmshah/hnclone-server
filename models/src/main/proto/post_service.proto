@@ -14,8 +14,57 @@ service PostsService {
     rpc Read (PostReadRequest) returns (Post);
     rpc ReadNewStream (PostReadListRequest) returns (stream Post);
     rpc ReadHotStream (PostReadListRequest) returns (stream Post);
-    rpc ReadFromUserStream (PostReadListFromUserRequest) returns (stream Post);
+    rpc ReadNewFromUserStream (PostReadListFromUserRequest) returns (stream Post);
+    rpc ReadTopFromUserStream (PostReadListFromUserRequest) returns (stream Post);
     rpc VoteDecrement (PostVoteDecrementRequest) returns (PostScoreResponse);
     rpc VoteIncrement (PostVoteIncrementRequest) returns (PostScoreResponse);
     rpc VoteRemove (PostVoteRemoveRequest) returns (PostScoreResponse);
+}
+
+message PostCreateRequest {
+    string      title           = 1;
+    string      url             = 2;
+    string      text            = 3;
+}
+
+message PostVoteIncrementRequest {
+    uint32      id              = 1;
+}
+
+message PostVoteDecrementRequest {
+    uint32      id              = 1;
+}
+
+message PostVoteRemoveRequest {
+    uint32      id              = 1;
+}
+
+message PostScoreResponse {
+    uint32      id              = 1;
+    int32       score           = 2;
+    int32       voted           = 3;
+}
+
+message PostDeleteRequest {
+    uint32      id              = 1;
+}
+
+message PostDeleteResponse {
+    uint32      id              = 1;
+    bool        deleted         = 2;
+}
+
+message PostReadRequest {
+    uint32      id              = 1;
+}
+
+message PostReadListRequest {
+    uint32      limit           = 1;
+    uint32      offset          = 2;
+}
+
+message PostReadListFromUserRequest {
+    uint32      id              = 1;
+    uint32      limit           = 2;
+    uint32      offset          = 3;
 }

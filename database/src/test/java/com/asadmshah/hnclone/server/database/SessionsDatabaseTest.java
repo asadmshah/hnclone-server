@@ -1,6 +1,6 @@
 package com.asadmshah.hnclone.server.database;
 
-import com.asadmshah.hnclone.models.Session;
+import com.asadmshah.hnclone.models.RefreshSession;
 import com.asadmshah.hnclone.models.User;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -32,22 +32,22 @@ public class SessionsDatabaseTest extends BaseDatabaseTest {
         User user3 = udb.create("Username 3", "Password 3", "");
         assertThat(user3).isNotNull();
 
-        Session session1 = sdb.create(user1.getId(), LocalDateTime.now().plusDays(30));
+        RefreshSession session1 = sdb.create(user1.getId(), LocalDateTime.now().plusDays(30));
         assertThat(session1).isNotNull();
 
         assertThat(sdb.read(session1.getUuid())).isNotNull();
 
-        Session session2 = sdb.create(user1.getId(), LocalDateTime.now().plusDays(90));
+        RefreshSession session2 = sdb.create(user1.getId(), LocalDateTime.now().plusDays(90));
         assertThat(session2).isNotNull();
 
-        Session session3 = sdb.create(user2.getId(), LocalDateTime.now().plusDays(90));
+        RefreshSession session3 = sdb.create(user2.getId(), LocalDateTime.now().plusDays(90));
         assertThat(session3).isNotNull();
 
-        List<Session> user1Sessions = sdb.read(user1.getId()).toList().toBlocking().first();
+        List<RefreshSession> user1Sessions = sdb.read(user1.getId()).toList().toBlocking().first();
         assertThat(user1Sessions).containsExactly(session1, session2);
         assertThat(user1Sessions).doesNotContain(session3);
 
-        Session session4 = sdb.create(user3.getId(), LocalDateTime.now().plusDays(30));
+        RefreshSession session4 = sdb.create(user3.getId(), LocalDateTime.now().plusDays(30));
         assertThat(session4).isNotNull();
 
         assertThat(sdb.delete(session3.getUuid())).isTrue();

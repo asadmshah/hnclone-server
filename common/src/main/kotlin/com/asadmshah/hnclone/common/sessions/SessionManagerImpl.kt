@@ -2,7 +2,6 @@ package com.asadmshah.hnclone.common.sessions
 
 import com.asadmshah.hnclone.models.RefreshSession
 import com.asadmshah.hnclone.models.RequestSession
-import com.asadmshah.hnclone.models.SessionScope
 import com.asadmshah.hnclone.models.SessionToken
 import com.google.protobuf.ByteString
 import com.google.protobuf.InvalidProtocolBufferException
@@ -34,9 +33,8 @@ internal class SessionManagerImpl constructor(req: ByteArray, ref: ByteArray) : 
         return createRequestToken(RequestSession
                 .newBuilder()
                 .setId(id)
-                .setScope(SessionScope.USER)
-                .setIssuedDt(System.currentTimeMillis())
-                .setExpireDt(System.currentTimeMillis() + REQ_EXPIRE_AFTER)
+                .setIssued(System.currentTimeMillis())
+                .setExpire(System.currentTimeMillis() + REQ_EXPIRE_AFTER)
                 .build())
     }
 
@@ -58,7 +56,7 @@ internal class SessionManagerImpl constructor(req: ByteArray, ref: ByteArray) : 
             }
 
             val reqs = RequestSession.parseFrom(data)
-            if (System.currentTimeMillis() > reqs.expireDt) {
+            if (System.currentTimeMillis() > reqs.expire) {
                 throw ExpiredTokenException()
             }
 
@@ -72,9 +70,8 @@ internal class SessionManagerImpl constructor(req: ByteArray, ref: ByteArray) : 
         return createRefreshToken(RefreshSession
                 .newBuilder()
                 .setId(id)
-                .setScope(SessionScope.USER)
-                .setIssuedDt(System.currentTimeMillis())
-                .setExpireDt(System.currentTimeMillis() + REF_EXPIRE_AFTER)
+                .setIssued(System.currentTimeMillis())
+                .setExpire(System.currentTimeMillis() + REF_EXPIRE_AFTER)
                 .build())
     }
 
@@ -96,7 +93,7 @@ internal class SessionManagerImpl constructor(req: ByteArray, ref: ByteArray) : 
             }
 
             val reqs = RefreshSession.parseFrom(data)
-            if (System.currentTimeMillis() > reqs.expireDt) {
+            if (System.currentTimeMillis() > reqs.expire) {
                 throw ExpiredTokenException()
             }
 

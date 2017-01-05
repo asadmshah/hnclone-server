@@ -4,6 +4,7 @@ import com.asadmshah.hnclone.models.RefreshSession
 import com.asadmshah.hnclone.models.RequestSession
 import com.asadmshah.hnclone.models.SessionToken
 
+
 interface SessionManager {
 
     fun createRequestToken(id: Int): SessionToken

@@ -4,15 +4,17 @@ import com.asadmshah.hnclone.common.tools.escape
 import com.asadmshah.hnclone.common.tools.unescape
 import com.asadmshah.hnclone.errors.CommonServiceErrors
 import com.asadmshah.hnclone.errors.PostServiceErrors
-import com.asadmshah.hnclone.models.*
+import com.asadmshah.hnclone.models.Post
+import com.asadmshah.hnclone.models.RequestSession
 import com.asadmshah.hnclone.server.ServerComponent
 import com.asadmshah.hnclone.server.database.PostsDatabase
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor
-import com.asadmshah.hnclone.services.PostsServiceGrpc
+import com.asadmshah.hnclone.services.*
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
 import io.grpc.stub.StreamObserver
 import org.apache.commons.validator.routines.UrlValidator
+import rx.Subscriber
 import java.sql.SQLException
 
 class PostsServiceEndpoint private constructor(component: ServerComponent) : PostsServiceGrpc.PostsServiceImplBase() {
@@ -80,7 +82,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         val post: Post?
         try {
-            post = postsDatabase.create(id, title, url, text)
+            post = postsDatabase.create(id, title, text ?: "", url ?: "")
         } catch (e: SQLException) {
             responseObserver.onError(CommonServiceErrors.UnknownException)
             return
@@ -155,46 +157,109 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     override fun readNewStream(request: PostReadListRequest, responseObserver: StreamObserver<Post>) {
         val userId = SessionInterceptor.KEY_SESSION.get()?.id ?: -1
 
-        try {
-            postsDatabase.readNew(userId, request.limit, request.offset, {
-                responseObserver.onNext(it)
-            })
-        } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
-            return
-        }
+        postsDatabase
+                .readNew(userId, request.limit, request.offset)
+                .subscribe(object : Subscriber<Post>() {
+                    override fun onCompleted() {
+                        responseObserver.onCompleted()
+                    }
 
-        responseObserver.onCompleted()
+                    override fun onError(e: Throwable) {
+                        when (e) {
+                            is SQLException -> {
+                                responseObserver.onError(CommonServiceErrors.UnknownException)
+                            }
+                            else  -> {
+                                responseObserver.onError(CommonServiceErrors.UnknownException)
+                            }
+                        }
+                    }
+
+                    override fun onNext(t: Post) {
+                        responseObserver.onNext(t)
+                    }
+                })
     }
 
     override fun readHotStream(request: PostReadListRequest, responseObserver: StreamObserver<Post>) {
         val userId = SessionInterceptor.KEY_SESSION.get()?.id ?: -1
 
-        try {
-            postsDatabase.readHot(userId, request.limit, request.offset, {
-                responseObserver.onNext(it)
-            })
-        } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
-            return
-        }
+        postsDatabase
+                .readTop(userId, request.limit, request.offset)
+                .subscribe(object : Subscriber<Post>() {
+                    override fun onCompleted() {
+                        responseObserver.onCompleted()
+                    }
 
-        responseObserver.onCompleted()
+                    override fun onError(e: Throwable) {
+                        when (e) {
+                            is SQLException -> {
+                                responseObserver.onError(CommonServiceErrors.UnknownException)
+                            }
+                            else  -> {
+                                responseObserver.onError(CommonServiceErrors.UnknownException)
+                            }
+                        }
+                    }
+
+                    override fun onNext(t: Post) {
+                        responseObserver.onNext(t)
+                    }
+                })
     }
 
-    override fun readFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
-        val userId = SessionInterceptor.KEY_SESSION.get()?.id ?: -1
+    override fun readNewFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
+        val viewerId = SessionInterceptor.KEY_SESSION.get()?.id ?: -1
 
-        try {
-            postsDatabase.readFromUser(userId, request.id, request.limit, request.offset, {
-                responseObserver.onNext(it)
-            })
-        } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
-            return
-        }
+        postsDatabase
+                .readNew(viewerId, request.id, request.limit, request.offset)
+                .subscribe(object : Subscriber<Post>() {
+                    override fun onCompleted() {
+                        responseObserver.onCompleted();
+                    }
 
-        responseObserver.onCompleted()
+                    override fun onError(e: Throwable) {
+                        when (e) {
+                            is SQLException -> {
+                                responseObserver.onError(CommonServiceErrors.UnknownException)
+                            }
+                            else  -> {
+                                responseObserver.onError(CommonServiceErrors.UnknownException)
+                            }
+                        }
+                    }
+
+                    override fun onNext(t: Post) {
+                        responseObserver.onNext(t)
+                    }
+                })
+    }
+
+    override fun readTopFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
+        val viewerId = SessionInterceptor.KEY_SESSION.get()?.id ?: -1
+
+        postsDatabase
+                .readTop(viewerId, request.id, request.limit, request.offset)
+                .subscribe(object : Subscriber<Post>() {
+                    override fun onCompleted() {
+                        responseObserver.onCompleted()
+                    }
+
+                    override fun onError(e: Throwable) {
+                        when (e) {
+                            is SQLException -> {
+                                responseObserver.onError(CommonServiceErrors.UnknownException)
+                            }
+                            else  -> {
+                                responseObserver.onError(CommonServiceErrors.UnknownException)
+                            }
+                        }
+                    }
+
+                    override fun onNext(t: Post) {
+                        responseObserver.onNext(t)
+                    }
+                })
     }
 
     override fun voteDecrement(request: PostVoteDecrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {
@@ -219,7 +284,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         val newScore: Int
         try {
-            newScore = postsDatabase.voteDecrement(session.id, request.id) ?: 0
+            newScore = postsDatabase.decrementScore(session.id, request.id) ?: 0
         } catch (e: SQLException) {
             responseObserver.onError(CommonServiceErrors.UnknownException)
             return
@@ -258,7 +323,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         val newScore: Int
         try {
-            newScore = postsDatabase.voteIncrement(session.id, request.id) ?: 0
+            newScore = postsDatabase.incrementScore(session.id, request.id) ?: 0
         } catch (e: SQLException) {
             responseObserver.onError(CommonServiceErrors.UnknownException)
             return
@@ -297,7 +362,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         val newScore: Int
         try {
-            newScore = postsDatabase.voteRemove(session.id, request.id) ?: 0
+            newScore = postsDatabase.removeScore(session.id, request.id) ?: 0
         } catch (e: SQLException) {
             responseObserver.onError(CommonServiceErrors.UnknownException)
             return

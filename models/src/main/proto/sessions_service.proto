@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hnclone;
 
-import "session.proto";
+import "session_token.proto";
 
 option java_multiple_files = true;
 option java_package = "com.asadmshah.hnclone.services";
@@ -11,4 +11,14 @@ option optimize_for = LITE_RUNTIME;
 service SessionsService {
     rpc Refresh (SessionToken) returns (SessionToken) {}
     rpc Create (SessionCreateRequest) returns (SessionCreateResponse) {}
+}
+
+message SessionCreateRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message SessionCreateResponse {
+    SessionToken request = 1;
+    SessionToken refresh = 2;
 }

@@ -4,11 +4,12 @@ import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.common.tools.StringExtKt;
 import com.asadmshah.hnclone.errors.CommonServiceErrors;
 import com.asadmshah.hnclone.errors.PostServiceErrors;
-import com.asadmshah.hnclone.models.*;
+import com.asadmshah.hnclone.models.Post;
+import com.asadmshah.hnclone.models.RequestSession;
 import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.database.PostsDatabase;
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor;
-import com.asadmshah.hnclone.services.PostsServiceGrpc;
+import com.asadmshah.hnclone.services.*;
 import com.asadmshah.hnclone.services.PostsServiceGrpc.PostsServiceBlockingStub;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
@@ -26,8 +27,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import rx.Observable;
 
 import java.sql.SQLException;
+import java.util.Iterator;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -114,15 +117,15 @@ public class PostsServiceEndpointTest {
 
         Post resPost = inProcessStub.create(req);
 
-        verify(postsDatabase).create(uidCaptor.capture(), pscTitleCaptor.capture(), pscUrlCaptor.capture(), pscTextCaptor.capture());
+        verify(postsDatabase).create(uidCaptor.capture(), pscTitleCaptor.capture(), pscTextCaptor.capture(), pscUrlCaptor.capture());
 
         assertThat(resPost).isNotNull();
         assertThat(resPost).isEqualTo(expPost);
 
         assertThat(uidCaptor.getValue()).isEqualTo(testSession.getId());
         assertThat(pscTitleCaptor.getValue()).isEqualTo(StringExtKt.escape(req.getTitle()));
-        assertThat(pscUrlCaptor.getValue()).isEqualTo(StringExtKt.escape(req.getUrl()));
         assertThat(pscTextCaptor.getValue()).isEqualTo(StringExtKt.escape(req.getText()));
+        assertThat(pscUrlCaptor.getValue()).isEqualTo(StringExtKt.escape(req.getUrl()));
     }
 
     @Test
@@ -256,12 +259,11 @@ public class PostsServiceEndpointTest {
     public void createPost_shouldSucceedWithTitleAndUrlButNoText() {
         RequestSession session = RequestSession.getDefaultInstance();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.create(anyInt(), anyString(), anyString(), anyString())).thenReturn(Post.getDefaultInstance());
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        Post expPost = Post.getDefaultInstance();
 
         PostCreateRequest req = PostCreateRequest
                 .newBuilder()
@@ -269,32 +271,28 @@ public class PostsServiceEndpointTest {
                 .setUrl("http://www.google.com")
                 .build();
 
-        when(postsDatabase.create(anyInt(), anyString(), anyString(), isNull()))
-                .thenReturn(expPost);
-
         Post resPost = inProcessStub.create(req);
 
-        verify(postsDatabase).create(uidCaptor.capture(), pscTitleCaptor.capture(), pscUrlCaptor.capture(), pscTextCaptor.capture());
+        verify(postsDatabase).create(uidCaptor.capture(), pscTitleCaptor.capture(), pscTextCaptor.capture(), pscUrlCaptor.capture());
 
         assertThat(resPost).isNotNull();
-        assertThat(resPost).isEqualTo(expPost);
+        assertThat(resPost).isEqualTo(Post.getDefaultInstance());
 
         assertThat(uidCaptor.getValue()).isEqualTo(session.getId());
         assertThat(pscTitleCaptor.getValue()).isEqualTo(StringExtKt.escape(req.getTitle()));
+        assertThat(pscTextCaptor.getValue()).isEmpty();
         assertThat(pscUrlCaptor.getValue()).isEqualTo(StringExtKt.escape(req.getUrl()));
-        assertThat(pscTextCaptor.getValue()).isNull();
     }
 
     @Test
     public void createPost_shouldSucceedWithTitleAndTextButNoUrl() {
         RequestSession session = RequestSession.getDefaultInstance();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.create(anyInt(), anyString(), anyString(), anyString())).thenReturn(Post.getDefaultInstance());
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        Post expPost = Post.getDefaultInstance();
 
         PostCreateRequest req = PostCreateRequest
                 .newBuilder()
@@ -302,20 +300,17 @@ public class PostsServiceEndpointTest {
                 .setText("Test Text")
                 .build();
 
-        when(postsDatabase.create(anyInt(), anyString(), isNull(), anyString()))
-                .thenReturn(expPost);
-
         Post resPost = inProcessStub.create(req);
 
-        verify(postsDatabase).create(uidCaptor.capture(), pscTitleCaptor.capture(), pscUrlCaptor.capture(), pscTextCaptor.capture());
+        verify(postsDatabase).create(uidCaptor.capture(), pscTitleCaptor.capture(), pscTextCaptor.capture(), pscUrlCaptor.capture());
 
         assertThat(resPost).isNotNull();
-        assertThat(resPost).isEqualTo(expPost);
+        assertThat(resPost).isEqualTo(Post.getDefaultInstance());
 
         assertThat(uidCaptor.getValue()).isEqualTo(session.getId());
         assertThat(pscTitleCaptor.getValue()).isEqualTo(StringExtKt.escape(req.getTitle()));
-        assertThat(pscUrlCaptor.getValue()).isNull();
         assertThat(pscTextCaptor.getValue()).isEqualTo(req.getText());
+        assertThat(pscUrlCaptor.getValue()).isEmpty();
     }
 
     @Test
@@ -736,7 +731,7 @@ public class PostsServiceEndpointTest {
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
-        when(postsDatabase.voteDecrement(anyInt(), anyInt())).thenThrow(SQLException.class);
+        when(postsDatabase.decrementScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -795,7 +790,7 @@ public class PostsServiceEndpointTest {
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
-        when(postsDatabase.voteDecrement(anyInt(), anyInt())).thenReturn(exp.getScore());
+        when(postsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -809,7 +804,7 @@ public class PostsServiceEndpointTest {
         PostScoreResponse res = inProcessStub.voteDecrement(request);
 
         verify(postsDatabase).read(uidCaptor.capture(), psrIdCaptor.capture());
-        verify(postsDatabase).voteDecrement(uidCaptor.capture(), psvdIdCaptor.capture());
+        verify(postsDatabase).decrementScore(uidCaptor.capture(), psvdIdCaptor.capture());
 
         assertThat(uidCaptor.getAllValues()).containsExactly(session.getId(), session.getId());
         assertThat(psrIdCaptor.getValue()).isEqualTo(exp.getId());
@@ -864,7 +859,7 @@ public class PostsServiceEndpointTest {
     public void voteIncrement_shouldThrowSQLExceptionOnIncrement() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
-        when(postsDatabase.voteIncrement(anyInt(), anyInt())).thenThrow(SQLException.class);
+        when(postsDatabase.incrementScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -919,7 +914,7 @@ public class PostsServiceEndpointTest {
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
-        when(postsDatabase.voteIncrement(anyInt(), anyInt())).thenReturn(exp.getScore());
+        when(postsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -933,7 +928,7 @@ public class PostsServiceEndpointTest {
         PostScoreResponse res = inProcessStub.voteIncrement(request);
 
         verify(postsDatabase).read(uidCaptor.capture(), psrIdCaptor.capture());
-        verify(postsDatabase).voteIncrement(uidCaptor.capture(), psviIdCaptor.capture());
+        verify(postsDatabase).incrementScore(uidCaptor.capture(), psviIdCaptor.capture());
 
         assertThat(uidCaptor.getAllValues()).containsExactly(session.getId(), session.getId());
         assertThat(psrIdCaptor.getValue()).isEqualTo(exp.getId());
@@ -988,7 +983,7 @@ public class PostsServiceEndpointTest {
     public void voteRemove_shouldThrowSQLExceptionOnRemove() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
-        when(postsDatabase.voteRemove(anyInt(), anyInt())).thenThrow(SQLException.class);
+        when(postsDatabase.removeScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -1043,7 +1038,7 @@ public class PostsServiceEndpointTest {
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
-        when(postsDatabase.voteRemove(anyInt(), anyInt())).thenReturn(exp.getScore());
+        when(postsDatabase.removeScore(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -1057,7 +1052,7 @@ public class PostsServiceEndpointTest {
         PostScoreResponse res = inProcessStub.voteRemove(request);
 
         verify(postsDatabase).read(uidCaptor.capture(), psrIdCaptor.capture());
-        verify(postsDatabase).voteRemove(uidCaptor.capture(), psvrIdCaptor.capture());
+        verify(postsDatabase).removeScore(uidCaptor.capture(), psvrIdCaptor.capture());
 
         assertThat(uidCaptor.getAllValues()).containsExactly(session.getId(), session.getId());
         assertThat(psrIdCaptor.getValue()).isEqualTo(exp.getId());
@@ -1065,6 +1060,342 @@ public class PostsServiceEndpointTest {
 
         assertThat(res).isNotNull();
         assertThat(res).isEqualTo(exp);
+    }
+
+    @Test
+    public void readNewStream_shouldCompleteNotLoggedIn() {
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+
+        PostReadListRequest request = PostReadListRequest
+                .newBuilder()
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        Iterator<Post> response = inProcessStub.readNewStream(request);
+        assertThat(response.next()).isEqualTo(post1);
+        assertThat(response.next()).isEqualTo(post2);
+        assertThat(response.next()).isEqualTo(post3);
+        assertThat(response.hasNext()).isFalse();
+
+        verify(postsDatabase).readNew(-1, request.getLimit(), request.getOffset());
+    }
+
+    @Test
+    public void readNewStream_shouldCompleteLoggedIn() {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+
+        PostReadListRequest request = PostReadListRequest
+                .newBuilder()
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        Iterator<Post> response = inProcessStub.readNewStream(request);
+        assertThat(response.next()).isEqualTo(post1);
+        assertThat(response.next()).isEqualTo(post2);
+        assertThat(response.next()).isEqualTo(post3);
+        assertThat(response.hasNext()).isFalse();
+
+        verify(postsDatabase).readNew(session.getId(), request.getLimit(), request.getOffset());
+    }
+
+    @Test
+    public void readNewStream_shouldThrowSQLException() {
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new SQLException()));
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readNewStream(PostReadListRequest.getDefaultInstance()).next();
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readNewStream_shouldThrowException() {
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new IllegalStateException()));
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readNewStream(PostReadListRequest.getDefaultInstance()).next();
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readHotStream_shouldThrowSQLException() {
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new SQLException()));
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readHotStream(PostReadListRequest.getDefaultInstance()).next();
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readHotStream_shouldThrowException() {
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new IllegalStateException()));
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readHotStream(PostReadListRequest.getDefaultInstance()).next();
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readHotStream_shouldCompleteNotLoggedIn() {
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+
+        PostReadListRequest request = PostReadListRequest
+                .newBuilder()
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        Iterator<Post> response = inProcessStub.readHotStream(request);
+        assertThat(response.next()).isEqualTo(post1);
+        assertThat(response.next()).isEqualTo(post2);
+        assertThat(response.next()).isEqualTo(post3);
+        assertThat(response.hasNext()).isFalse();
+
+        verify(postsDatabase).readTop(-1, request.getLimit(), request.getOffset());
+    }
+
+    @Test
+    public void readHotStream_shouldCompleteLoggedIn() {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+
+        PostReadListRequest request = PostReadListRequest
+                .newBuilder()
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        Iterator<Post> response = inProcessStub.readHotStream(request);
+        assertThat(response.next()).isEqualTo(post1);
+        assertThat(response.next()).isEqualTo(post2);
+        assertThat(response.next()).isEqualTo(post3);
+        assertThat(response.hasNext()).isFalse();
+
+        verify(postsDatabase).readTop(session.getId(), request.getLimit(), request.getOffset());
+    }
+
+    @Test
+    public void readNewFromUserStream_shouldThrowSQLException() {
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new SQLException()));
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readNewFromUserStream(PostReadListFromUserRequest.getDefaultInstance()).next();
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readNewFromUserStream_shouldThrowException() {
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new RuntimeException()));
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readNewFromUserStream(PostReadListFromUserRequest.getDefaultInstance()).next();
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readNewFromUserStream_shouldCompleteLoggedIn() {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+
+        PostReadListFromUserRequest request = PostReadListFromUserRequest
+                .newBuilder()
+                .setId(2)
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        Iterator<Post> response = inProcessStub.readNewFromUserStream(request);
+        assertThat(response.next()).isEqualTo(post1);
+        assertThat(response.next()).isEqualTo(post2);
+        assertThat(response.next()).isEqualTo(post3);
+        assertThat(response.hasNext()).isFalse();
+
+        verify(postsDatabase).readNew(session.getId(), request.getId(), request.getLimit(), request.getOffset());
+    }
+
+    @Test
+    public void readNewFromUserStream_shouldCompleteNotLoggedIn() {
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+
+        PostReadListFromUserRequest request = PostReadListFromUserRequest
+                .newBuilder()
+                .setId(2)
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        Iterator<Post> response = inProcessStub.readNewFromUserStream(request);
+        assertThat(response.next()).isEqualTo(post1);
+        assertThat(response.next()).isEqualTo(post2);
+        assertThat(response.next()).isEqualTo(post3);
+        assertThat(response.hasNext()).isFalse();
+
+        verify(postsDatabase).readNew(-1, request.getId(), request.getLimit(), request.getOffset());
+    }
+
+    @Test
+    public void readTopFromUserStream_shouldThrowSQLException() {
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new SQLException()));
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readTopFromUserStream(PostReadListFromUserRequest.getDefaultInstance()).next();
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readTopFromUserStream_shouldThrowException() {
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new RuntimeException()));
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.readTopFromUserStream(PostReadListFromUserRequest.getDefaultInstance()).next();
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+    }
+
+    @Test
+    public void readTopFromUserStream_shouldCompleteLoggedIn() {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+
+        PostReadListFromUserRequest request = PostReadListFromUserRequest
+                .newBuilder()
+                .setId(2)
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        Iterator<Post> response = inProcessStub.readTopFromUserStream(request);
+        assertThat(response.next()).isEqualTo(post1);
+        assertThat(response.next()).isEqualTo(post2);
+        assertThat(response.next()).isEqualTo(post3);
+        assertThat(response.hasNext()).isFalse();
+
+        verify(postsDatabase).readTop(session.getId(), request.getId(), request.getLimit(), request.getOffset());
+    }
+
+    @Test
+    public void readTopFromUserStream_shouldCompleteNotLoggedIn() {
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+
+        PostReadListFromUserRequest request = PostReadListFromUserRequest
+                .newBuilder()
+                .setId(2)
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        Iterator<Post> response = inProcessStub.readTopFromUserStream(request);
+        assertThat(response.next()).isEqualTo(post1);
+        assertThat(response.next()).isEqualTo(post2);
+        assertThat(response.next()).isEqualTo(post3);
+        assertThat(response.hasNext()).isFalse();
+
+        verify(postsDatabase).readTop(-1, request.getId(), request.getLimit(), request.getOffset());
     }
 
 }
