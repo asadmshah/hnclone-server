@@ -15,5 +15,5 @@ message Post {
     uint32      score           = 6;
     uint32      user_id         = 7;
     string      user_name       = 8;
-    bool        upvoted         = 10;
+    int32       upvoted         = 10;
 }

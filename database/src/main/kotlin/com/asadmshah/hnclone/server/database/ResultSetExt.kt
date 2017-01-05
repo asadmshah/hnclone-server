@@ -26,16 +26,18 @@ internal fun ResultSet.getUser(): User {
 }
 
 internal fun ResultSet.getPost(): Post {
-    return Post(
-            getInt(1),
-            getTimestamp(2).toLocalDateTime(),
-            getString(3),
-            getString(4),
-            getString(5),
-            getInt(6),
-            getInt(7),
-            getString(8),
-            getInt(9))
+    return Post
+            .newBuilder()
+            .setId(getInt(1))
+            .setTimestamp(getTimestamp(2).toLocalDateTime().toEpochSecond(ZoneOffset.UTC))
+            .setTitle(getString(3))
+            .setText(getString(4))
+            .setUrl(getString(5))
+            .setScore(getInt(6))
+            .setUserId(getInt(7))
+            .setUserName(getString(8))
+            .setUpvoted(getInt(9))
+            .build()
 }
 
 internal fun ResultSet.getInt(): Int {
