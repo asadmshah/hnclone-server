@@ -33,11 +33,11 @@ constructor(private val dataSource: DataSource) : SessionsDatabase {
 
     override fun delete(id: Int): Int {
         return dataSource
-                .executeSingle("SELECT * FROM sessions_delete($id);", { it.getInt() }) ?: 0
+                .executeSingle("SELECT * FROM sessions_delete($id);", ResultSet::getInt) ?: 0
     }
 
     override fun delete(uuid: String): Boolean {
         return dataSource
-                .executeSingle("SELECT * FROM sessions_delete('$uuid');", { it.getBoolean() }) ?: false
+                .executeSingle("SELECT * FROM sessions_delete('$uuid');", ResultSet::getBoolean) ?: false
     }
 }

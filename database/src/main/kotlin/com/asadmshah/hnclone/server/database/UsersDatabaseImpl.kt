@@ -20,7 +20,7 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
 
         try {
             return dataSource
-                    .executeSingle("SELECT * FROM users_create('$username', '$hash', '$about');", { it.getUser() })
+                    .executeSingle("SELECT * FROM users_create('$username', '$hash', '$about');", ResultSet::getUser)
         } catch (e: SQLException) {
             when (e.sqlState) {
                 "23505" -> throw UserExistsException()
@@ -31,12 +31,12 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
 
     override fun read(id: Int): User? {
         return dataSource
-                .executeSingle("SELECT * FROM users_read($id);", { it.getUser() })
+                .executeSingle("SELECT * FROM users_read($id);", ResultSet::getUser)
     }
 
     override fun read(username: String): User? {
         return dataSource
-                .executeSingle("SELECT * FROM users_read('$username');", { it.getUser() })
+                .executeSingle("SELECT * FROM users_read('$username');", ResultSet::getUser)
     }
 
     override fun read(username: String, password: String): User? {
@@ -57,12 +57,12 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
         val hash = hashString(password)
 
         return dataSource
-                .executeSingle("SELECT * FROM users_update_password($id, '$hash');", { it.getBoolean() })
+                .executeSingle("SELECT * FROM users_update_password($id, '$hash');", ResultSet::getBoolean)
     }
 
     override fun delete(id: Int): Boolean? {
         return dataSource
-                .executeSingle("SELECT * FROM users_delete($id);", { it.getBoolean() })
+                .executeSingle("SELECT * FROM users_delete($id);", ResultSet::getBoolean)
     }
 
     internal fun hashString(i: String): String {
