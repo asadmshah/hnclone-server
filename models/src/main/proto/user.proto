@@ -10,6 +10,6 @@ message User {
     uint32 id = 1;
     string username = 2;
     uint64 created = 3;
-    uint32 score = 4;
+    int32 score = 4;
     string about = 5;
 }

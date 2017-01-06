@@ -12,7 +12,7 @@ message Post {
     string      title           = 3;
     string      text            = 5;
     string      url             = 4;
-    uint32      score           = 6;
+    int32       score           = 6;
     uint32      user_id         = 7;
     string      user_name       = 8;
     int32       upvoted         = 10;
