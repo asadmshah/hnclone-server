@@ -1,4 +1,4 @@
-package com.asadmshah.hnclone.server.database
+package com.asadmshah.hnclone.database
 
 import rx.Observable
 import java.sql.Connection

@@ -1,4 +1,4 @@
-package com.asadmshah.hnclone.server.database
+package com.asadmshah.hnclone.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

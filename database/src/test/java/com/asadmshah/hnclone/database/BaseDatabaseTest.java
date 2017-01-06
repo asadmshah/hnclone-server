@@ -1,4 +1,4 @@
-package com.asadmshah.hnclone.server.database;
+package com.asadmshah.hnclone.database;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
