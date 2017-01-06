@@ -3,11 +3,11 @@ package com.asadmshah.hnclone.server.endpoints
 import com.asadmshah.hnclone.common.sessions.ExpiredTokenException
 import com.asadmshah.hnclone.common.sessions.InvalidTokenException
 import com.asadmshah.hnclone.common.sessions.SessionManager
+import com.asadmshah.hnclone.database.UsersDatabase
 import com.asadmshah.hnclone.errors.CommonServiceErrors
 import com.asadmshah.hnclone.errors.SessionsServiceErrors
 import com.asadmshah.hnclone.models.SessionToken
 import com.asadmshah.hnclone.server.ServerComponent
-import com.asadmshah.hnclone.server.database.UsersDatabase
 import com.asadmshah.hnclone.services.SessionCreateRequest
 import com.asadmshah.hnclone.services.SessionCreateResponse
 import com.asadmshah.hnclone.services.SessionsServiceGrpc

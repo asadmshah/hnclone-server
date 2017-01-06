@@ -1,13 +1,13 @@
 package com.asadmshah.hnclone.server.endpoints;
 
 import com.asadmshah.hnclone.common.sessions.SessionManager;
+import com.asadmshah.hnclone.database.UserExistsException;
+import com.asadmshah.hnclone.database.UsersDatabase;
 import com.asadmshah.hnclone.errors.CommonServiceErrors;
 import com.asadmshah.hnclone.errors.UsersServiceErrors;
 import com.asadmshah.hnclone.models.RequestSession;
 import com.asadmshah.hnclone.models.User;
 import com.asadmshah.hnclone.server.ServerComponent;
-import com.asadmshah.hnclone.server.database.UserExistsException;
-import com.asadmshah.hnclone.server.database.UsersDatabase;
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor;
 import com.asadmshah.hnclone.services.*;
 import io.grpc.ManagedChannel;

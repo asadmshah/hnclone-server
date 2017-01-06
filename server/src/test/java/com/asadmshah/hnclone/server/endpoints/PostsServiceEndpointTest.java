@@ -2,12 +2,12 @@ package com.asadmshah.hnclone.server.endpoints;
 
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.common.tools.StringExtKt;
+import com.asadmshah.hnclone.database.PostsDatabase;
 import com.asadmshah.hnclone.errors.CommonServiceErrors;
 import com.asadmshah.hnclone.errors.PostServiceErrors;
 import com.asadmshah.hnclone.models.Post;
 import com.asadmshah.hnclone.models.RequestSession;
 import com.asadmshah.hnclone.server.ServerComponent;
-import com.asadmshah.hnclone.server.database.PostsDatabase;
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor;
 import com.asadmshah.hnclone.services.*;
 import com.asadmshah.hnclone.services.PostsServiceGrpc.PostsServiceBlockingStub;
