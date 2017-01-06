@@ -23,5 +23,7 @@ interface PostsDatabase {
 
     fun removeScore(viewerId: Int, postId: Int): Int?
 
+    fun readScore(viewerId: Int, postId: Int): Int?
+
     fun delete(postId: Int): Boolean
 }
