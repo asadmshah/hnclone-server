@@ -45,8 +45,6 @@ class SessionInterceptor private constructor(private val manager: SessionManager
         }
 
         return Contexts.interceptCall(context, call, headers, next)
-
-        return Contexts.interceptCall(Context.current().withValue(KEY_SESSION, null), call, headers, next)
     }
 
 }
