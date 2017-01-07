@@ -1,7 +1,16 @@
+plugins {
+    id "me.champeau.gradle.jmh" version "0.3.1"
+}
+
 version '0.1.0'
 
 repositories {
     mavenCentral()
+}
+
+jmh {
+    duplicateClassesStrategy = 'warn'
+    jmhVersion = '1.17'
 }
 
 dependencies {
@@ -18,8 +27,8 @@ dependencies {
     kapt    group: 'com.google.dagger', name: 'dagger-compiler', version: "$dagger_version"
 
     compile group: 'biz.paluch.redis', name: 'lettuce', version: '4.3.0.Final'
-
     compile group: 'io.grpc', name: 'grpc-all', version: "$grpc_version"
-
     compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.0.4'
+
+    jmh 'org.openjdk.jmh:jmh-core:1.17'
 }
