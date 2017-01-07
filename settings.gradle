@@ -4,3 +4,5 @@ include 'database'
 include 'models'
 include 'server'
 include 'common'
+include 'pubsub'
+
