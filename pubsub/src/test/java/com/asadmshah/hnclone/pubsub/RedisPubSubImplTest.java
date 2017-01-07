@@ -15,7 +15,7 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class PubSubImplTest {
+public class RedisPubSubImplTest {
 
     private Configuration configuration;
     private PubSub pubSub;
@@ -23,8 +23,8 @@ public class PubSubImplTest {
     @Before
     public void setUp() throws Exception {
         this.configuration = new Configurations()
-                .properties(PubSubImplTest.class.getClassLoader().getResource("test.properties"));
-        this.pubSub = new PubSubImpl(configuration);
+                .properties(RedisPubSubImplTest.class.getClassLoader().getResource("test.properties"));
+        this.pubSub = new RedisPubSubImpl(configuration);
         this.pubSub.start();
     }
 

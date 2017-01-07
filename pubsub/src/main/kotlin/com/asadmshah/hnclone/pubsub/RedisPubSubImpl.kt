@@ -17,7 +17,7 @@ import rx.Subscription
 import rx.subscriptions.CompositeSubscription
 import javax.inject.Inject
 
-internal class PubSubImpl
+internal class RedisPubSubImpl
 @Inject
 constructor(private val configuration: Configuration) : PubSub {
 

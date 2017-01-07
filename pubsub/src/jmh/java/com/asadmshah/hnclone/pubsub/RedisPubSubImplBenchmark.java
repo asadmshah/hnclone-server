@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
 @State(Scope.Thread)
-public class PostPubSubBenchmark {
+public class RedisPubSubImplBenchmark {
 
     @Param({"1", "10", "100"})
     public int publisherCount;
@@ -27,8 +27,8 @@ public class PostPubSubBenchmark {
 
     @Setup
     public void setUp() throws Exception {
-        Configuration configuration = new Configurations().properties(PubSubImplTest.class.getClassLoader().getResource("test.properties"));
-        this.pubSub = new PubSubImpl(configuration);
+        Configuration configuration = new Configurations().properties(RedisPubSubImplBenchmark.class.getClassLoader().getResource("test.properties"));
+        this.pubSub = new RedisPubSubImpl(configuration);
         this.pubSub.start();
     }
 
