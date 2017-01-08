@@ -12,9 +12,10 @@ import com.asadmshah.hnclone.server.interceptors.SessionInterceptor
 import com.asadmshah.hnclone.services.*
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
 import org.apache.commons.validator.routines.UrlValidator
-import rx.Subscriber
 import java.sql.SQLException
 
 class PostsServiceEndpoint private constructor(component: ServerComponent) : PostsServiceGrpc.PostsServiceImplBase() {
@@ -159,26 +160,26 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readNew(userId, request.limit, request.offset)
-                .subscribe(object : Subscriber<Post>() {
-                    override fun onCompleted() {
-                        responseObserver.onCompleted()
-                    }
-
-                    override fun onError(e: Throwable) {
-                        when (e) {
-                            is SQLException -> {
-                                responseObserver.onError(CommonServiceErrors.UnknownException)
-                            }
-                            else  -> {
-                                responseObserver.onError(CommonServiceErrors.UnknownException)
-                            }
+                .doOnError {
+                    when (it) {
+                        is SQLException -> {
+                            responseObserver.onError(CommonServiceErrors.UnknownException)
+                        }
+                        else  -> {
+                            responseObserver.onError(CommonServiceErrors.UnknownException)
                         }
                     }
-
-                    override fun onNext(t: Post) {
-                        responseObserver.onNext(t)
+                }
+                .doOnCompleted { responseObserver.onCompleted() }
+                .doOnNext { responseObserver.onNext(it) }
+                .doOnError {
+                    if (it is StatusRuntimeException) {
+                        if (it.status.code == Status.Code.CANCELLED) {
+                            // Log Cancelled
+                        }
                     }
-                })
+                }
+                .subscribe()
     }
 
     override fun readHotStream(request: PostReadListRequest, responseObserver: StreamObserver<Post>) {
@@ -186,26 +187,26 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readTop(userId, request.limit, request.offset)
-                .subscribe(object : Subscriber<Post>() {
-                    override fun onCompleted() {
-                        responseObserver.onCompleted()
-                    }
-
-                    override fun onError(e: Throwable) {
-                        when (e) {
-                            is SQLException -> {
-                                responseObserver.onError(CommonServiceErrors.UnknownException)
-                            }
-                            else  -> {
-                                responseObserver.onError(CommonServiceErrors.UnknownException)
-                            }
+                .doOnError {
+                    when (it) {
+                        is SQLException -> {
+                            responseObserver.onError(CommonServiceErrors.UnknownException)
+                        }
+                        else  -> {
+                            responseObserver.onError(CommonServiceErrors.UnknownException)
                         }
                     }
-
-                    override fun onNext(t: Post) {
-                        responseObserver.onNext(t)
+                }
+                .doOnCompleted { responseObserver.onCompleted() }
+                .doOnNext { responseObserver.onNext(it) }
+                .doOnError {
+                    if (it is StatusRuntimeException) {
+                        if (it.status.code == Status.Code.CANCELLED) {
+                            // Log Cancelled
+                        }
                     }
-                })
+                }
+                .subscribe()
     }
 
     override fun readNewFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
@@ -213,26 +214,26 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readNew(viewerId, request.id, request.limit, request.offset)
-                .subscribe(object : Subscriber<Post>() {
-                    override fun onCompleted() {
-                        responseObserver.onCompleted();
-                    }
-
-                    override fun onError(e: Throwable) {
-                        when (e) {
-                            is SQLException -> {
-                                responseObserver.onError(CommonServiceErrors.UnknownException)
-                            }
-                            else  -> {
-                                responseObserver.onError(CommonServiceErrors.UnknownException)
-                            }
+                .doOnError {
+                    when (it) {
+                        is SQLException -> {
+                            responseObserver.onError(CommonServiceErrors.UnknownException)
+                        }
+                        else  -> {
+                            responseObserver.onError(CommonServiceErrors.UnknownException)
                         }
                     }
-
-                    override fun onNext(t: Post) {
-                        responseObserver.onNext(t)
+                }
+                .doOnCompleted { responseObserver.onCompleted() }
+                .doOnNext { responseObserver.onNext(it) }
+                .doOnError {
+                    if (it is StatusRuntimeException) {
+                        if (it.status.code == Status.Code.CANCELLED) {
+                            // Log Cancelled
+                        }
                     }
-                })
+                }
+                .subscribe()
     }
 
     override fun readTopFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
@@ -240,26 +241,26 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readTop(viewerId, request.id, request.limit, request.offset)
-                .subscribe(object : Subscriber<Post>() {
-                    override fun onCompleted() {
-                        responseObserver.onCompleted()
-                    }
-
-                    override fun onError(e: Throwable) {
-                        when (e) {
-                            is SQLException -> {
-                                responseObserver.onError(CommonServiceErrors.UnknownException)
-                            }
-                            else  -> {
-                                responseObserver.onError(CommonServiceErrors.UnknownException)
-                            }
+                .doOnError {
+                    when (it) {
+                        is SQLException -> {
+                            responseObserver.onError(CommonServiceErrors.UnknownException)
+                        }
+                        else  -> {
+                            responseObserver.onError(CommonServiceErrors.UnknownException)
                         }
                     }
-
-                    override fun onNext(t: Post) {
-                        responseObserver.onNext(t)
+                }
+                .doOnCompleted { responseObserver.onCompleted() }
+                .doOnNext { responseObserver.onNext(it) }
+                .doOnError {
+                    if (it is StatusRuntimeException) {
+                        if (it.status.code == Status.Code.CANCELLED) {
+                            // Log Cancelled
+                        }
                     }
-                })
+                }
+                .subscribe()
     }
 
     override fun voteDecrement(request: PostVoteDecrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {

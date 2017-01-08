@@ -11,10 +11,7 @@ import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor;
 import com.asadmshah.hnclone.services.*;
 import com.asadmshah.hnclone.services.PostsServiceGrpc.PostsServiceBlockingStub;
-import io.grpc.ManagedChannel;
-import io.grpc.Metadata;
-import io.grpc.Server;
-import io.grpc.StatusRuntimeException;
+import io.grpc.*;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.MetadataUtils;
@@ -30,7 +27,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import rx.Observable;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -1396,6 +1397,49 @@ public class PostsServiceEndpointTest {
         assertThat(response.hasNext()).isFalse();
 
         verify(postsDatabase).readTop(-1, request.getId(), request.getLimit(), request.getOffset());
+    }
+
+    @Test(timeout = 5000L)
+    public void readTopFromUserStream_shouldCompleteOnEarlyDisconnect() throws InterruptedException {
+        Post post1 = Post.newBuilder().setId(1).build();
+        Post post2 = Post.newBuilder().setId(2).build();
+        Post post3 = Post.newBuilder().setId(3).build();
+
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt()))
+                .thenReturn(Observable.just(post1, post2, post3).delay(1, TimeUnit.SECONDS));
+
+        final PostReadListFromUserRequest request = PostReadListFromUserRequest
+                .newBuilder()
+                .setId(2)
+                .setLimit(5)
+                .setOffset(0)
+                .build();
+
+        final List<Post> returnedPosts = new ArrayList<>();
+
+        CountDownLatch counter = new CountDownLatch(2);
+
+        final ClientCall<PostReadListFromUserRequest, Post> call = inProcessChannel.newCall(PostsServiceGrpc.METHOD_READ_TOP_FROM_USER_STREAM, CallOptions.DEFAULT);
+        call.start(new ClientCall.Listener<Post>() {
+            @Override
+            public void onMessage(Post message) {
+                returnedPosts.add(message);
+                counter.countDown();
+            }
+
+            @Override
+            public void onReady() {
+                call.sendMessage(request);
+                call.request(2);
+                call.halfClose();
+            }
+        }, new Metadata());
+
+        counter.await();
+
+        call.cancel("No longer needed.", null);
+
+        assertThat(returnedPosts.size()).isEqualTo(2);
     }
 
 }
