@@ -40,29 +40,29 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     override fun create(request: UserCreateRequest, responseObserver: StreamObserver<User>) {
         val username = if (request.username.isNullOrBlank()) null else request.username.trim().escape()
         if (username == null) {
-            responseObserver.onError(UsersServiceErrors.UsernameRequiredException)
+            responseObserver.onError(UsersServiceErrors.USERNAME_REQUIRED_EXCEPTION)
             return
         }
 
         if (StringUtils.containsWhitespace(username)) {
-            responseObserver.onError(UsersServiceErrors.UsernameInvalidException)
+            responseObserver.onError(UsersServiceErrors.USERNAME_INVALID_EXCEPTION)
             return
         }
 
         if (!patternUsername.matcher(username).matches()) {
-            responseObserver.onError(UsersServiceErrors.UsernameInvalidException)
+            responseObserver.onError(UsersServiceErrors.USERNAME_INVALID_EXCEPTION)
             return
         }
 
         val password = if (request.username.isNullOrBlank()) null else request.password.trim().escape()
         if (password == null || password.isBlank()) {
-            responseObserver.onError(UsersServiceErrors.PasswordInsecureException)
+            responseObserver.onError(UsersServiceErrors.PASSWORD_INSECURE_EXCEPTION)
             return
         }
 
         val about = if (request.about.isNullOrBlank()) "" else request.about.trim().escape()
         if (about.length > 512) {
-            responseObserver.onError(UsersServiceErrors.AboutTooLongException)
+            responseObserver.onError(UsersServiceErrors.ABOUT_TOO_LONG_EXCEPTION)
             return
         }
 
@@ -70,15 +70,15 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         try {
             user = usersDatabase.create(username, password, about)
         } catch (e: UserExistsException) {
-            responseObserver.onError(UsersServiceErrors.ExistsException)
+            responseObserver.onError(UsersServiceErrors.USERNAME_EXISTS_EXCEPTION)
             return
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
 
         if (user == null) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
 
@@ -91,12 +91,12 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         try {
             user = usersDatabase.read(request.id)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
 
         if (user == null) {
-            responseObserver.onError(UsersServiceErrors.NotFoundException)
+            responseObserver.onError(UsersServiceErrors.NOT_FOUND_EXCEPTION)
             return
         }
 
@@ -109,12 +109,12 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         try {
             user = usersDatabase.read(request.username)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
 
         if (user == null) {
-            responseObserver.onError(UsersServiceErrors.NotFoundException)
+            responseObserver.onError(UsersServiceErrors.NOT_FOUND_EXCEPTION)
             return
         }
 
@@ -125,13 +125,13 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     override fun updateAbout(request: UserUpdateAboutRequest, responseObserver: StreamObserver<UserUpdateAboutResponse>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
+            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
             return
         }
 
         val about = if (request.about.isNullOrBlank()) "" else request.about.trim().escape()
         if (about.length > 512) {
-            responseObserver.onError(UsersServiceErrors.AboutTooLongException)
+            responseObserver.onError(UsersServiceErrors.ABOUT_TOO_LONG_EXCEPTION)
             return
         }
 
@@ -142,12 +142,12 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
                 response = UserUpdateAboutResponse.newBuilder().setAbout(s).build()
             }
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
 
         if (response == null) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
 
@@ -158,7 +158,7 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     override fun delete(request: UserDeleteRequest, responseObserver: StreamObserver<UserDeleteResponse>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UnauthenticatedException)
+            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
             return
         }
 
@@ -169,12 +169,12 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
                 response = UserDeleteResponse.newBuilder().setDeleted(d).build()
             }
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
 
         if (response == null) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
 

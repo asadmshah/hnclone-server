@@ -146,7 +146,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
     }
 
     @Test
@@ -173,7 +173,7 @@ public class PostsServiceEndpointTest {
         verify(postsDatabase, never()).create(anyInt(), anyString(), anyString(), anyString());
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getTitleRequired().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.TITLE_REQUIRED.getDescription());
     }
 
     @Test
@@ -199,7 +199,7 @@ public class PostsServiceEndpointTest {
         verify(postsDatabase, never()).create(anyInt(), anyString(), anyString(), anyString());
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getTitleRequired().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.TITLE_REQUIRED.getDescription());
     }
 
 
@@ -227,7 +227,7 @@ public class PostsServiceEndpointTest {
         verify(postsDatabase, never()).create(anyInt(), anyString(), anyString(), anyString());
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getTitleTooLong().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.TITLE_TOO_LONG.getDescription());
     }
 
     @Test
@@ -254,7 +254,7 @@ public class PostsServiceEndpointTest {
         verify(postsDatabase, never()).create(anyInt(), anyString(), anyString(), anyString());
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getContentRequired().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.CONTENT_REQUIRED.getDescription());
     }
     @Test
     public void createPost_shouldSucceedWithTitleAndUrlButNoText() {
@@ -337,7 +337,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getContentURLInvalid().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.CONTENT_URL_INVALID.getDescription());
     }
 
     @Test
@@ -363,7 +363,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getContentTextTooLong().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.CONTENT_TEXT_TOO_LONG.getDescription());
     }
 
     @Test
@@ -393,7 +393,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -422,7 +422,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -448,7 +448,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getContentURLUnacceptable().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.CONTENT_URL_UNACCEPTABLE.getDescription());
     }
 
     @Test
@@ -463,7 +463,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
     }
 
     @Test
@@ -485,7 +485,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
     }
 
     @Test
@@ -510,7 +510,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthorized().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHORIZED.getDescription());
     }
 
     @Test
@@ -536,7 +536,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -560,7 +560,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -673,7 +673,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
     }
 
     @Test
@@ -688,7 +688,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -703,7 +703,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
     }
 
     @Test
@@ -723,7 +723,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -746,7 +746,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -770,7 +770,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
     }
 
     @Test
@@ -829,7 +829,7 @@ public class PostsServiceEndpointTest {
         verifyZeroInteractions(postsDatabase);
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
     }
 
     @Test
@@ -853,7 +853,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
     }
 
     @Test
@@ -874,7 +874,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -894,7 +894,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -953,7 +953,7 @@ public class PostsServiceEndpointTest {
         verifyZeroInteractions(postsDatabase);
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
     }
 
     @Test
@@ -977,7 +977,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
     }
 
     @Test
@@ -998,7 +998,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1018,7 +1018,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1128,7 +1128,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1143,7 +1143,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1158,7 +1158,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1173,7 +1173,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1241,7 +1241,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1256,7 +1256,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1326,7 +1326,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -1341,7 +1341,7 @@ public class PostsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test

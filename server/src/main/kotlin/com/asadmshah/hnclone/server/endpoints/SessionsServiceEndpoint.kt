@@ -37,9 +37,9 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
             responseObserver.onNext(sessions.createRequestToken(session.id))
             responseObserver.onCompleted()
         } catch (e: ExpiredTokenException) {
-            responseObserver.onError(SessionsServiceErrors.ExpiredTokenException)
+            responseObserver.onError(SessionsServiceErrors.EXPIRED_TOKEN_EXCEPTION)
         } catch (e: InvalidTokenException) {
-            responseObserver.onError(SessionsServiceErrors.InvalidTokenException)
+            responseObserver.onError(SessionsServiceErrors.INVALID_TOKEN_EXCEPTION)
         }
     }
 
@@ -47,7 +47,7 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             val user = usersDatabase.read(request.username, request.password)
             if (user == null) {
-                responseObserver.onError(SessionsServiceErrors.UserNotFoundException)
+                responseObserver.onError(SessionsServiceErrors.USER_NOT_FOUND_EXCEPTION)
                 return
             }
 
@@ -58,7 +58,7 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
             responseObserver.onNext(response)
             responseObserver.onCompleted()
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UnknownException)
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
         }
     }
 }

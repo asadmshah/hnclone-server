@@ -86,7 +86,7 @@ public class SessionsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.INSTANCE.getExpiredToken().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.EXPIRED_TOKEN.getDescription());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class SessionsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.INSTANCE.getInvalidToken().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.INVALID_TOKEN.getDescription());
     }
 
     @Test
@@ -136,7 +136,7 @@ public class SessionsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.INSTANCE.getUserNotFound().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.USER_NOT_FOUND.getDescription());
     }
 
     @Test
@@ -153,7 +153,7 @@ public class SessionsServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test

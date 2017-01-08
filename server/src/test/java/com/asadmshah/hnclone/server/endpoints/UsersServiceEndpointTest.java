@@ -90,7 +90,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getUsernameRequired().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.USERNAME_REQUIRED.getDescription());
     }
 
     @Test
@@ -109,7 +109,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getUsernameInvalid().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.USERNAME_INVALID.getDescription());
     }
 
     @Test
@@ -128,7 +128,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getUsernameInvalid().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.USERNAME_INVALID.getDescription());
     }
 
     @Test
@@ -175,7 +175,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getPasswordInsecure().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.PASSWORD_INSECURE.getDescription());
     }
 
     @Test
@@ -195,7 +195,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getAboutTooLong().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.ABOUT_TOO_LONG.getDescription());
     }
 
     @Test
@@ -216,7 +216,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getExists().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.USERNAME_EXISTS.getDescription());
     }
 
     @Test
@@ -237,7 +237,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -258,7 +258,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -308,7 +308,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -323,7 +323,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.NOT_FOUND.getDescription());
     }
 
     @Test
@@ -362,7 +362,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -377,7 +377,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getNotFound().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.NOT_FOUND.getDescription());
     }
 
     @Test
@@ -414,7 +414,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
     }
 
     @Test
@@ -434,7 +434,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -454,7 +454,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -478,7 +478,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.INSTANCE.getAboutTooLong().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.ABOUT_TOO_LONG.getDescription());
     }
 
     @Test
@@ -532,7 +532,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnauthenticated().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
     }
 
     @Test
@@ -552,7 +552,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
@@ -572,7 +572,7 @@ public class UsersServiceEndpointTest {
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.INSTANCE.getUnknown().getDescription());
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
     }
 
     @Test
