@@ -1,0 +1,15 @@
+version '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':models')
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.0.4'
+    compile group: 'io.grpc', name: 'grpc-okhttp', version: "$grpc_version"
+
+    testCompile project(':server')
+}
