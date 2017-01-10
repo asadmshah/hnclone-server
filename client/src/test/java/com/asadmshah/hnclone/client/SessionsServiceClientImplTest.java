@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SessionsClientImplTest {
+public class SessionsServiceClientImplTest {
 
     @Mock private SessionManager sessionManager;
     @Mock private UsersDatabase usersDatabase;
@@ -34,7 +34,7 @@ public class SessionsClientImplTest {
     @Mock private SessionStorage sessionStorage;
 
     private BaseClient baseClient;
-    private SessionsClientImpl sessionsClient;
+    private SessionsServiceClientImpl sessionsClient;
 
     @Before
     public void setUp() throws Exception {
@@ -42,7 +42,7 @@ public class SessionsClientImplTest {
         when(component.usersDatabase()).thenReturn(usersDatabase);
 
         baseClient = new TestBaseClientImpl(SessionsServiceEndpoint.create(component));
-        sessionsClient = new SessionsClientImpl(sessionStorage, baseClient);
+        sessionsClient = new SessionsServiceClientImpl(sessionStorage, baseClient);
     }
 
     @After

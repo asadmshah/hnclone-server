@@ -7,8 +7,8 @@ import io.grpc.StatusRuntimeException
 import io.reactivex.Completable
 
 internal class
-SessionsClientImpl(private val sessions: SessionStorage,
-                   private val baseClient: BaseClient) : SessionsClient {
+SessionsServiceClientImpl(private val sessions: SessionStorage,
+                          private val baseClient: BaseClient) : SessionsServiceClient {
 
     override fun refresh(): Completable {
         return Completable

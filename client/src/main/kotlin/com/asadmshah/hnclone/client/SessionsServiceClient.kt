@@ -3,7 +3,7 @@ package com.asadmshah.hnclone.client
 import com.asadmshah.hnclone.services.SessionCreateRequest
 import io.reactivex.Completable
 
-interface SessionsClient {
+interface SessionsServiceClient {
 
     fun refresh(): Completable
 
