@@ -1,9 +1,6 @@
 package com.asadmshah.hnclone.client;
 
-import io.grpc.BindableService;
-import io.grpc.Channel;
-import io.grpc.ManagedChannel;
-import io.grpc.Server;
+import io.grpc.*;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +18,22 @@ final class TestBaseClientImpl implements BaseClient {
     TestBaseClientImpl(BindableService... services) throws IOException {
         InProcessServerBuilder builder = InProcessServerBuilder.forName(SERVER_NAME);
         for (BindableService service : services) {
+            builder.addService(service);
+        }
+        builder.directExecutor();
+
+        server = builder.build();
+        server.start();
+
+        channel = InProcessChannelBuilder
+                .forName(SERVER_NAME)
+                .directExecutor()
+                .build();
+    }
+
+    TestBaseClientImpl(ServerServiceDefinition... services) throws IOException {
+        InProcessServerBuilder builder = InProcessServerBuilder.forName(SERVER_NAME);
+        for (ServerServiceDefinition service : services) {
             builder.addService(service);
         }
         builder.directExecutor();
