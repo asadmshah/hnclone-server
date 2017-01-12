@@ -1,42 +1,43 @@
 package com.asadmshah.hnclone.client
 
 import com.asadmshah.hnclone.errors.SessionsServiceErrors
+import com.asadmshah.hnclone.models.RefreshSession
 import com.asadmshah.hnclone.services.SessionCreateRequest
 import com.asadmshah.hnclone.services.SessionsServiceGrpc
-import io.grpc.StatusRuntimeException
 import io.reactivex.Completable
+import java.util.concurrent.TimeUnit
 
 internal class
 SessionsServiceClientImpl(private val sessions: SessionStorage,
                           private val baseClient: BaseClient) : SessionsServiceClient {
 
+    companion object {
+        private val CUTOFF = TimeUnit.SECONDS.toMillis(10)
+    }
+
     override fun refresh(): Completable {
+        return refresh(false)
+    }
+
+    override fun refresh(force: Boolean): Completable {
         return Completable
                 .fromCallable {
                     val stub = SessionsServiceGrpc.newBlockingStub(baseClient.getChannel())
-                    val response = stub.refresh(sessions.getRefreshKey())
-                    sessions.putRequestKey(response)
-                    0
-                }
-                .onErrorResumeNext {
-                    val throwable: Throwable
-                    if (it is StatusRuntimeException) {
-                        when (it.status.description) {
-                            SessionsServiceErrors.EXPIRED_TOKEN.description -> {
-                                throwable = SessionsServiceErrors.EXPIRED_TOKEN_EXCEPTION
-                            }
-                            SessionsServiceErrors.INVALID_TOKEN.description -> {
-                                throwable = SessionsServiceErrors.INVALID_TOKEN_EXCEPTION
-                            }
-                            else -> {
-                                throwable = it
-                            }
+                    val rkey = sessions.getRefreshKey()
+                    if (rkey != null) {
+                        val tok = RefreshSession.parseFrom(rkey.data)
+                        if (force || isExpired(tok.expire, TimeUnit.MILLISECONDS)) {
+                            val response = stub.refresh(rkey)
+                            sessions.putRequestKey(response)
+                            0
+                        } else {
+                            0
                         }
                     } else {
-                        throwable = it
+                        throw SessionsServiceErrors.INVALID_TOKEN_EXCEPTION
                     }
-                    Completable.error(throwable)
                 }
+                .onStatusRuntimeErrorResumeNext()
     }
 
     override fun create(request: SessionCreateRequest): Completable {
@@ -48,21 +49,12 @@ SessionsServiceClientImpl(private val sessions: SessionStorage,
                     sessions.putRequestKey(response.request)
                     0
                 }
-                .onErrorResumeNext {
-                    val throwable: Throwable
-                    if (it is StatusRuntimeException) {
-                        when (it.status.description) {
-                            SessionsServiceErrors.USER_NOT_FOUND.description -> {
-                                throwable = SessionsServiceErrors.USER_NOT_FOUND_EXCEPTION
-                            }
-                            else -> {
-                                throwable = it
-                            }
-                        }
-                    } else {
-                        throwable = it
-                    }
-                    Completable.error(throwable)
-                }
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun isExpired(time: Long, unit: TimeUnit): Boolean {
+        val a = unit.toMillis(time)
+        val b = System.currentTimeMillis() + CUTOFF
+        return a < b
     }
 }

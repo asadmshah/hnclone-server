@@ -20,10 +20,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SessionsServiceClientImplTest {
@@ -83,18 +86,55 @@ public class SessionsServiceClientImplTest {
     }
 
     @Test
-    public void refresh_shouldComplete() throws Exception {
-        SessionToken oldRefreshKey = SessionToken.newBuilder().setData(ByteString.copyFrom("Refresh Key".getBytes())).build();
+    public void refresh_shouldCompleteWithNoInteractions() throws Exception {
+        long expire = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(60);
 
-        when(sessionStorage.getRefreshKey()).thenReturn(oldRefreshKey);
+        RefreshSession refreshS = RefreshSession.newBuilder().setId(10).setExpire(expire).build();
+        SessionToken refreshT = SessionToken.newBuilder().setData(refreshS.toByteString()).build();
+
+        when(sessionStorage.getRefreshKey()).thenReturn(refreshT);
+
+        sessionsClient.refresh().blockingAwait();
+
+        verify(sessionStorage, times(1)).getRefreshKey();
+        verify(sessionManager, times(0)).parseRefreshToken(refreshT);
+        verify(sessionStorage, times(0)).putRequestKey(SessionToken.getDefaultInstance());
+    }
+
+    @Test
+    public void refresh_shouldCompleteWithInteractions() throws Exception {
+        long expire = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(8);
+
+        RefreshSession refreshS = RefreshSession.newBuilder().setId(10).setExpire(expire).build();
+        SessionToken refreshT = SessionToken.newBuilder().setData(refreshS.toByteString()).build();
+
+        when(sessionStorage.getRefreshKey()).thenReturn(refreshT);
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.getDefaultInstance());
         when(sessionManager.createRequestToken(anyInt())).thenReturn(SessionToken.getDefaultInstance());
 
         sessionsClient.refresh().blockingAwait();
 
-        verify(sessionStorage).getRefreshKey();
-        verify(sessionManager).parseRefreshToken(oldRefreshKey);
-        verify(sessionStorage).putRequestKey(SessionToken.getDefaultInstance());
+        verify(sessionStorage, times(1)).getRefreshKey();
+        verify(sessionManager, times(1)).parseRefreshToken(refreshT);
+        verify(sessionStorage, times(1)).putRequestKey(SessionToken.getDefaultInstance());
+    }
+
+    @Test
+    public void refresh_shouldForce() throws Exception {
+        long expire = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(60);
+
+        RefreshSession refreshS = RefreshSession.newBuilder().setId(10).setExpire(expire).build();
+        SessionToken refreshT = SessionToken.newBuilder().setData(refreshS.toByteString()).build();
+
+        when(sessionStorage.getRefreshKey()).thenReturn(refreshT);
+        when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.getDefaultInstance());
+        when(sessionManager.createRequestToken(anyInt())).thenReturn(SessionToken.getDefaultInstance());
+
+        sessionsClient.refresh(true).blockingAwait();
+
+        verify(sessionStorage, times(1)).getRefreshKey();
+        verify(sessionManager, times(1)).parseRefreshToken(refreshT);
+        verify(sessionStorage, times(1)).putRequestKey(SessionToken.getDefaultInstance());
     }
 
     @Test
