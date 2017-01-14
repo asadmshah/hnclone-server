@@ -45,8 +45,13 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
     override fun update(request: UserUpdateAboutRequest): Single<String> {
         return sessionsClient
                 .refresh()
-                .toSingleDefault("")
-                .map {
+                .andThen(justUpdate(request))
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun justUpdate(request: UserUpdateAboutRequest): Single<String> {
+        return Single
+                .fromCallable {
                     val md = io.grpc.Metadata()
                     sessionsStore.getRequestKey()?.let {
                         md.put(AUTHORIZATION_KEY, it.toByteArray())
@@ -54,7 +59,6 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                     val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
                     stub.updateAbout(request).about
                 }
-                .onStatusRuntimeErrorResumeNext()
     }
 
     override fun delete(): Single<Boolean> {
