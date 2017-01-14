@@ -13,7 +13,6 @@ import com.asadmshah.hnclone.server.endpoints.UsersServiceEndpoint;
 import com.asadmshah.hnclone.services.UserCreateRequest;
 import com.asadmshah.hnclone.services.UserReadUsingIDRequest;
 import com.asadmshah.hnclone.services.UserUpdateAboutRequest;
-import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -245,16 +244,17 @@ public class UsersServiceClientImplTest {
     @Test
     public void updateAbout_shouldComplete() throws Exception {
         String updatedAbout = "Updated About";
-        SessionToken requestKey = SessionToken.newBuilder().setData(ByteString.copyFrom("Request".getBytes())).build();
-        RequestSession requestSession = RequestSession.newBuilder().setId(10).build();
+
+        RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
+        SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
 
         when(usersDatabase.updateAbout(anyInt(), anyString())).thenReturn(updatedAbout);
-        when(sessions.getRequestKey()).thenReturn(requestKey);
-        when(sessionManager.parseRequestToken(any(SessionToken.class))).thenReturn(requestSession);
+        when(sessions.getRequestKey()).thenReturn(requestT);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
 
         UserUpdateAboutRequest request = UserUpdateAboutRequest
                 .newBuilder()
-                .setAbout("Updated")
+                .setAbout(updatedAbout)
                 .build();
 
         String response = usersClient.update(request).blockingGet();
@@ -262,4 +262,5 @@ public class UsersServiceClientImplTest {
         assertThat(response).isNotNull();
         assertThat(response).isEqualTo(request.getAbout());
     }
+
 }
