@@ -57,4 +57,23 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                 .onStatusRuntimeErrorResumeNext()
     }
 
+    override fun delete(): Single<Boolean> {
+        return sessionsClient
+                .refresh()
+                .andThen(justDelete())
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun justDelete(): Single<Boolean> {
+        return Single
+                .fromCallable {
+                    val md = io.grpc.Metadata()
+                    sessionsStore.getRequestKey()?.let {
+                        md.put(AUTHORIZATION_KEY, it.toByteArray())
+                    }
+                    val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
+                    stub.delete(UserDeleteRequest.getDefaultInstance()).deleted
+                }
+    }
+
 }

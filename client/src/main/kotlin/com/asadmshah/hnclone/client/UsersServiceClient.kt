@@ -17,4 +17,6 @@ interface UsersServiceClient {
 
     fun update(request: UserUpdateAboutRequest): Single<String>
 
+    fun delete(): Single<Boolean>
+
 }
