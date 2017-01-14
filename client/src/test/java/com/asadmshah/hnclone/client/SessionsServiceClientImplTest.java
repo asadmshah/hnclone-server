@@ -6,6 +6,7 @@ import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.UsersDatabase;
 import com.asadmshah.hnclone.errors.SessionsServiceErrors;
 import com.asadmshah.hnclone.models.RefreshSession;
+import com.asadmshah.hnclone.models.RequestSession;
 import com.asadmshah.hnclone.models.SessionToken;
 import com.asadmshah.hnclone.models.User;
 import com.asadmshah.hnclone.server.ServerComponent;
@@ -55,12 +56,13 @@ public class SessionsServiceClientImplTest {
 
     @Test
     public void refresh_shouldThrowExpiredTokenException() throws Exception {
+        when(sessionStorage.getRequestKey()).thenReturn(SessionToken.getDefaultInstance());
         when(sessionStorage.getRefreshKey()).thenReturn(SessionToken.getDefaultInstance());
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenThrow(ExpiredTokenException.class);
 
         StatusRuntimeException exception = null;
         try {
-            sessionsClient.refresh().blockingAwait();
+            sessionsClient.refresh(true).blockingAwait();
         } catch (StatusRuntimeException e) {
             exception = e;
         }
@@ -71,7 +73,7 @@ public class SessionsServiceClientImplTest {
 
     @Test
     public void refresh_shouldThrowInvalidTokenException() throws Exception {
-        when(sessionStorage.getRefreshKey()).thenReturn(SessionToken.getDefaultInstance());
+        when(sessionStorage.getRequestKey()).thenReturn(SessionToken.getDefaultInstance());
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenThrow(InvalidTokenException.class);
 
         StatusRuntimeException exception = null;
@@ -89,15 +91,15 @@ public class SessionsServiceClientImplTest {
     public void refresh_shouldCompleteWithNoInteractions() throws Exception {
         long expire = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(60);
 
-        RefreshSession refreshS = RefreshSession.newBuilder().setId(10).setExpire(expire).build();
-        SessionToken refreshT = SessionToken.newBuilder().setData(refreshS.toByteString()).build();
+        RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(expire).build();
+        SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
 
-        when(sessionStorage.getRefreshKey()).thenReturn(refreshT);
+        when(sessionStorage.getRequestKey()).thenReturn(requestT);
 
         sessionsClient.refresh().blockingAwait();
 
-        verify(sessionStorage, times(1)).getRefreshKey();
-        verify(sessionManager, times(0)).parseRefreshToken(refreshT);
+        verify(sessionStorage, times(1)).getRequestKey();
+        verify(sessionManager, times(0)).parseRefreshToken(requestT);
         verify(sessionStorage, times(0)).putRequestKey(SessionToken.getDefaultInstance());
     }
 
@@ -105,15 +107,19 @@ public class SessionsServiceClientImplTest {
     public void refresh_shouldCompleteWithInteractions() throws Exception {
         long expire = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(8);
 
-        RefreshSession refreshS = RefreshSession.newBuilder().setId(10).setExpire(expire).build();
+        RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(expire).build();
+        RefreshSession refreshS = RefreshSession.newBuilder().setId(10).build();
+        SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
         SessionToken refreshT = SessionToken.newBuilder().setData(refreshS.toByteString()).build();
 
+        when(sessionStorage.getRequestKey()).thenReturn(requestT);
         when(sessionStorage.getRefreshKey()).thenReturn(refreshT);
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.getDefaultInstance());
         when(sessionManager.createRequestToken(anyInt())).thenReturn(SessionToken.getDefaultInstance());
 
         sessionsClient.refresh().blockingAwait();
 
+        verify(sessionStorage, times(1)).getRequestKey();
         verify(sessionStorage, times(1)).getRefreshKey();
         verify(sessionManager, times(1)).parseRefreshToken(refreshT);
         verify(sessionStorage, times(1)).putRequestKey(SessionToken.getDefaultInstance());
@@ -123,9 +129,12 @@ public class SessionsServiceClientImplTest {
     public void refresh_shouldForce() throws Exception {
         long expire = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(60);
 
-        RefreshSession refreshS = RefreshSession.newBuilder().setId(10).setExpire(expire).build();
+        RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(expire).build();
+        RefreshSession refreshS = RefreshSession.newBuilder().setId(10).build();
+        SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
         SessionToken refreshT = SessionToken.newBuilder().setData(refreshS.toByteString()).build();
 
+        when(sessionStorage.getRequestKey()).thenReturn(requestT);
         when(sessionStorage.getRefreshKey()).thenReturn(refreshT);
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.getDefaultInstance());
         when(sessionManager.createRequestToken(anyInt())).thenReturn(SessionToken.getDefaultInstance());
@@ -133,6 +142,7 @@ public class SessionsServiceClientImplTest {
         sessionsClient.refresh(true).blockingAwait();
 
         verify(sessionStorage, times(1)).getRefreshKey();
+        verify(sessionStorage, times(1)).getRequestKey();
         verify(sessionManager, times(1)).parseRefreshToken(refreshT);
         verify(sessionStorage, times(1)).putRequestKey(SessionToken.getDefaultInstance());
     }

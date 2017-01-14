@@ -1,7 +1,7 @@
 package com.asadmshah.hnclone.client
 
 import com.asadmshah.hnclone.errors.SessionsServiceErrors
-import com.asadmshah.hnclone.models.RefreshSession
+import com.asadmshah.hnclone.models.RequestSession
 import com.asadmshah.hnclone.services.SessionCreateRequest
 import com.asadmshah.hnclone.services.SessionsServiceGrpc
 import io.reactivex.Completable
@@ -22,12 +22,13 @@ SessionsServiceClientImpl(private val sessions: SessionStorage,
     override fun refresh(force: Boolean): Completable {
         return Completable
                 .fromCallable {
-                    val stub = SessionsServiceGrpc.newBlockingStub(baseClient.getChannel())
-                    val rkey = sessions.getRefreshKey()
-                    if (rkey != null) {
-                        val tok = RefreshSession.parseFrom(rkey.data)
-                        if (force || isExpired(tok.expire, TimeUnit.MILLISECONDS)) {
-                            val response = stub.refresh(rkey)
+                    val reqk = sessions.getRequestKey()
+                    if (reqk != null) {
+                        val reqt = RequestSession.parseFrom(reqk.data)
+                        if (force || isExpired(reqt.expire, TimeUnit.MILLISECONDS)) {
+                            val stub = SessionsServiceGrpc.newBlockingStub(baseClient.getChannel())
+                            val refk = sessions.getRefreshKey()
+                            val response = stub.refresh(refk)
                             sessions.putRequestKey(response)
                             0
                         } else {
