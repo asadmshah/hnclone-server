@@ -43,7 +43,7 @@ public class SessionsDatabaseTest extends BaseDatabaseTest {
         RefreshSession session3 = sdb.create(user2.getId(), LocalDateTime.now().plusDays(90));
         assertThat(session3).isNotNull();
 
-        List<RefreshSession> user1Sessions = sdb.read(user1.getId()).toList().toBlocking().first();
+        List<RefreshSession> user1Sessions = sdb.read(user1.getId()).toList().blockingGet();
         assertThat(user1Sessions).containsExactly(session1, session2);
         assertThat(user1Sessions).doesNotContain(session3);
 
@@ -54,7 +54,7 @@ public class SessionsDatabaseTest extends BaseDatabaseTest {
         assertThat(sdb.read(session3.getUuid())).isNull();
 
         assertThat(sdb.delete(user1.getId())).isEqualTo(2);
-        assertThat(sdb.read(user1.getId()).toList().toBlocking().first()).isEmpty();
+        assertThat(sdb.read(user1.getId()).toList().blockingGet()).isEmpty();
 
         assertThat(sdb.read(session4.getUuid())).isEqualTo(session4);
     }

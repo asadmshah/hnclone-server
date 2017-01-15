@@ -15,6 +15,7 @@ import io.grpc.*;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.stub.MetadataUtils;
+import io.reactivex.Flowable;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -24,7 +25,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import rx.Observable;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -1069,7 +1069,7 @@ public class PostsServiceEndpointTest {
         Post post2 = Post.newBuilder().setId(2).build();
         Post post3 = Post.newBuilder().setId(3).build();
 
-        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3));
 
         PostReadListRequest request = PostReadListRequest
                 .newBuilder()
@@ -1095,7 +1095,7 @@ public class PostsServiceEndpointTest {
         Post post3 = Post.newBuilder().setId(3).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3));
 
         PostReadListRequest request = PostReadListRequest
                 .newBuilder()
@@ -1118,7 +1118,7 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readNewStream_shouldThrowSQLException() {
-        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new SQLException()));
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Flowable.error(new SQLException()));
 
         StatusRuntimeException exception = null;
         try {
@@ -1133,7 +1133,7 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readNewStream_shouldThrowException() {
-        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new IllegalStateException()));
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(Flowable.error(new IllegalStateException()));
 
         StatusRuntimeException exception = null;
         try {
@@ -1148,7 +1148,7 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readHotStream_shouldThrowSQLException() {
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new SQLException()));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Flowable.error(new SQLException()));
 
         StatusRuntimeException exception = null;
         try {
@@ -1163,7 +1163,7 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readHotStream_shouldThrowException() {
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new IllegalStateException()));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Flowable.error(new IllegalStateException()));
 
         StatusRuntimeException exception = null;
         try {
@@ -1182,7 +1182,7 @@ public class PostsServiceEndpointTest {
         Post post2 = Post.newBuilder().setId(2).build();
         Post post3 = Post.newBuilder().setId(3).build();
 
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3));
 
         PostReadListRequest request = PostReadListRequest
                 .newBuilder()
@@ -1208,7 +1208,7 @@ public class PostsServiceEndpointTest {
         Post post3 = Post.newBuilder().setId(3).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3));
 
         PostReadListRequest request = PostReadListRequest
                 .newBuilder()
@@ -1231,7 +1231,7 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readNewFromUserStream_shouldThrowSQLException() {
-        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new SQLException()));
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.error(new SQLException()));
 
         StatusRuntimeException exception = null;
         try {
@@ -1246,7 +1246,7 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readNewFromUserStream_shouldThrowException() {
-        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new RuntimeException()));
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.error(new RuntimeException()));
 
         StatusRuntimeException exception = null;
         try {
@@ -1268,7 +1268,7 @@ public class PostsServiceEndpointTest {
         Post post3 = Post.newBuilder().setId(3).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3));
 
         PostReadListFromUserRequest request = PostReadListFromUserRequest
                 .newBuilder()
@@ -1296,7 +1296,7 @@ public class PostsServiceEndpointTest {
         Post post2 = Post.newBuilder().setId(2).build();
         Post post3 = Post.newBuilder().setId(3).build();
 
-        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+        when(postsDatabase.readNew(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3));
 
         PostReadListFromUserRequest request = PostReadListFromUserRequest
                 .newBuilder()
@@ -1316,7 +1316,7 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readTopFromUserStream_shouldThrowSQLException() {
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new SQLException()));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.error(new SQLException()));
 
         StatusRuntimeException exception = null;
         try {
@@ -1331,7 +1331,7 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void readTopFromUserStream_shouldThrowException() {
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.error(new RuntimeException()));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.error(new RuntimeException()));
 
         StatusRuntimeException exception = null;
         try {
@@ -1353,7 +1353,7 @@ public class PostsServiceEndpointTest {
         Post post3 = Post.newBuilder().setId(3).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3));
 
         PostReadListFromUserRequest request = PostReadListFromUserRequest
                 .newBuilder()
@@ -1381,7 +1381,7 @@ public class PostsServiceEndpointTest {
         Post post2 = Post.newBuilder().setId(2).build();
         Post post3 = Post.newBuilder().setId(3).build();
 
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Observable.just(post1, post2, post3));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3));
 
         PostReadListFromUserRequest request = PostReadListFromUserRequest
                 .newBuilder()
@@ -1405,8 +1405,7 @@ public class PostsServiceEndpointTest {
         Post post2 = Post.newBuilder().setId(2).build();
         Post post3 = Post.newBuilder().setId(3).build();
 
-        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt()))
-                .thenReturn(Observable.just(post1, post2, post3).delay(1, TimeUnit.SECONDS));
+        when(postsDatabase.readTop(anyInt(), anyInt(), anyInt(), anyInt())).thenReturn(Flowable.just(post1, post2, post3).delay(1, TimeUnit.SECONDS));
 
         final PostReadListFromUserRequest request = PostReadListFromUserRequest
                 .newBuilder()

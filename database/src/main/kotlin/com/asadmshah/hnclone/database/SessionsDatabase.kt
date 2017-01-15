@@ -1,14 +1,14 @@
 package com.asadmshah.hnclone.database
 
 import com.asadmshah.hnclone.models.RefreshSession
-import rx.Observable
+import io.reactivex.Flowable
 import java.time.LocalDateTime
 
 interface SessionsDatabase {
 
     fun create(id: Int, expires: LocalDateTime = LocalDateTime.now().plusDays(90)): RefreshSession?
 
-    fun read(id: Int): Observable<RefreshSession>
+    fun read(id: Int): Flowable<RefreshSession>
 
     fun read(uuid: String): RefreshSession?
 

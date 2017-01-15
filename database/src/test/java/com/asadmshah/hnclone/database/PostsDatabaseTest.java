@@ -2,11 +2,11 @@ package com.asadmshah.hnclone.database;
 
 import com.asadmshah.hnclone.models.Post;
 import com.asadmshah.hnclone.models.User;
+import io.reactivex.Flowable;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import rx.Observable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,27 +76,27 @@ public class PostsDatabaseTest extends BaseDatabaseTest {
 
         List<Post> postsList;
 
-        postsList = pdb.readTop(0, 2, 0).toList().toBlocking().first();
+        postsList = pdb.readTop(0, 2, 0).toList().blockingGet();
         assertThat(postsList).isNotNull();
         assertThat(postsList.get(0).getId()).isEqualTo(posts.get(1).getId());
         assertThat(postsList.get(1).getId()).isEqualTo(posts.get(0).getId());
 
-        postsList = pdb.readNew(0, 2, 0).toList().toBlocking().first();
+        postsList = pdb.readNew(0, 2, 0).toList().blockingGet();
         assertThat(postsList).isNotNull();
         assertThat(postsList).containsExactly(posts.get(9), posts.get(8));
 
-        postsList = Observable.concat(
+        postsList = Flowable.concat(
                 pdb.readTop(0, user1.getId(), 10, 0),
                 pdb.readTop(0, user2.getId(), 10, 0)
-        ).toList().toBlocking().first();
+        ).toList().blockingGet();
         assertThat(postsList.get(0).getId()).isEqualTo(posts.get(1).getId());
         assertThat(postsList.get(1).getId()).isEqualTo(posts.get(0).getId());
 
-        postsList = pdb.readNew(0, user1.getId(), 10, 0).toList().toBlocking().first();
+        postsList = pdb.readNew(0, user1.getId(), 10, 0).toList().blockingGet();
         assertThat(postsList).hasSize(5);
         assertThat(postsList.get(0).getId()).isEqualTo(posts.get(4).getId());
 
-        postsList = pdb.readNew(0, user2.getId(), 10, 0).toList().toBlocking().first();
+        postsList = pdb.readNew(0, user2.getId(), 10, 0).toList().blockingGet();
         assertThat(postsList).hasSize(5);
         assertThat(postsList.get(0).getId()).isEqualTo(posts.get(9).getId());
 

@@ -1,7 +1,7 @@
 package com.asadmshah.hnclone.database
 
 import com.asadmshah.hnclone.models.RefreshSession
-import rx.Observable
+import io.reactivex.Flowable
 import java.sql.ResultSet
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -21,9 +21,9 @@ constructor(private val dataSource: DataSource) : SessionsDatabase {
                 .executeSingle("SELECT * FROM sessions_create($id, '$uuidStr', $expiresDouble);", ResultSet::getRefreshSession)
     }
 
-    override fun read(id: Int): Observable<RefreshSession> {
+    override fun read(id: Int): Flowable<RefreshSession> {
         return dataSource
-                .executeObservable("SELECT * FROM sessions_read_id($id);", ResultSet::getRefreshSession)
+                .executeFlowable("SELECT * FROM sessions_read_id($id);", ResultSet::getRefreshSession)
     }
 
     override fun read(uuid: String): RefreshSession? {

@@ -21,6 +21,6 @@ dependencies {
 
     compile group: 'com.impossibl.pgjdbc-ng', name: 'pgjdbc-ng', version: '0.6'
     compile group: 'com.zaxxer', name: 'HikariCP', version: '2.5.1'
-    compile group: 'io.reactivex', name: 'rxjava', version: '1.2.3'
+    compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.0.4'
     compile group: 'org.mindrot', name: 'jbcrypt', version: '0.3m'
 }

@@ -12,10 +12,10 @@ import com.asadmshah.hnclone.server.interceptors.SessionInterceptor
 import com.asadmshah.hnclone.services.*
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
 import io.grpc.stub.StreamObserver
 import org.apache.commons.validator.routines.UrlValidator
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import java.sql.SQLException
 
 class PostsServiceEndpoint private constructor(component: ServerComponent) : PostsServiceGrpc.PostsServiceImplBase() {
@@ -160,26 +160,35 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readNew(userId, request.limit, request.offset)
-                .doOnError {
-                    when (it) {
-                        is SQLException -> {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
-                        }
-                        else  -> {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                .subscribe(object : Subscriber<Post> {
+
+                    private var subscription: Subscription? = null
+
+                    override fun onComplete() {
+                        responseObserver.onCompleted()
+                    }
+
+                    override fun onNext(it: Post) {
+                        responseObserver.onNext(it)
+                        subscription?.request(1)
+                    }
+
+                    override fun onError(it: Throwable) {
+                        when (it) {
+                            is SQLException -> {
+                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            }
+                            else -> {
+                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            }
                         }
                     }
-                }
-                .doOnCompleted { responseObserver.onCompleted() }
-                .doOnNext { responseObserver.onNext(it) }
-                .doOnError {
-                    if (it is StatusRuntimeException) {
-                        if (it.status.code == Status.Code.CANCELLED) {
-                            // Log Cancelled
-                        }
+
+                    override fun onSubscribe(s: Subscription) {
+                        subscription = s
+                        s.request(1)
                     }
-                }
-                .subscribe()
+                })
     }
 
     override fun readHotStream(request: PostReadListRequest, responseObserver: StreamObserver<Post>) {
@@ -187,26 +196,35 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readTop(userId, request.limit, request.offset)
-                .doOnError {
-                    when (it) {
-                        is SQLException -> {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
-                        }
-                        else  -> {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                .subscribe(object : Subscriber<Post> {
+
+                    private var subscription: Subscription? = null
+
+                    override fun onComplete() {
+                        responseObserver.onCompleted()
+                    }
+
+                    override fun onNext(it: Post) {
+                        responseObserver.onNext(it)
+                        subscription?.request(1)
+                    }
+
+                    override fun onError(it: Throwable) {
+                        when (it) {
+                            is SQLException -> {
+                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            }
+                            else -> {
+                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            }
                         }
                     }
-                }
-                .doOnCompleted { responseObserver.onCompleted() }
-                .doOnNext { responseObserver.onNext(it) }
-                .doOnError {
-                    if (it is StatusRuntimeException) {
-                        if (it.status.code == Status.Code.CANCELLED) {
-                            // Log Cancelled
-                        }
+
+                    override fun onSubscribe(s: Subscription) {
+                        subscription = s
+                        s.request(1)
                     }
-                }
-                .subscribe()
+                })
     }
 
     override fun readNewFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
@@ -214,26 +232,35 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readNew(viewerId, request.id, request.limit, request.offset)
-                .doOnError {
-                    when (it) {
-                        is SQLException -> {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
-                        }
-                        else  -> {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                .subscribe(object : Subscriber<Post> {
+
+                    private var subscription: Subscription? = null
+
+                    override fun onComplete() {
+                        responseObserver.onCompleted()
+                    }
+
+                    override fun onNext(it: Post) {
+                        responseObserver.onNext(it)
+                        subscription?.request(1)
+                    }
+
+                    override fun onError(it: Throwable) {
+                        when (it) {
+                            is SQLException -> {
+                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            }
+                            else -> {
+                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            }
                         }
                     }
-                }
-                .doOnCompleted { responseObserver.onCompleted() }
-                .doOnNext { responseObserver.onNext(it) }
-                .doOnError {
-                    if (it is StatusRuntimeException) {
-                        if (it.status.code == Status.Code.CANCELLED) {
-                            // Log Cancelled
-                        }
+
+                    override fun onSubscribe(s: Subscription) {
+                        subscription = s
+                        s.request(1)
                     }
-                }
-                .subscribe()
+                })
     }
 
     override fun readTopFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
@@ -241,26 +268,35 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readTop(viewerId, request.id, request.limit, request.offset)
-                .doOnError {
-                    when (it) {
-                        is SQLException -> {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
-                        }
-                        else  -> {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                .subscribe(object : Subscriber<Post> {
+
+                    private var subscription: Subscription? = null
+
+                    override fun onComplete() {
+                        responseObserver.onCompleted()
+                    }
+
+                    override fun onNext(it: Post) {
+                        responseObserver.onNext(it)
+                        subscription?.request(1)
+                    }
+
+                    override fun onError(it: Throwable) {
+                        when (it) {
+                            is SQLException -> {
+                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            }
+                            else -> {
+                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            }
                         }
                     }
-                }
-                .doOnCompleted { responseObserver.onCompleted() }
-                .doOnNext { responseObserver.onNext(it) }
-                .doOnError {
-                    if (it is StatusRuntimeException) {
-                        if (it.status.code == Status.Code.CANCELLED) {
-                            // Log Cancelled
-                        }
+
+                    override fun onSubscribe(s: Subscription) {
+                        subscription = s
+                        s.request(1)
                     }
-                }
-                .subscribe()
+                })
     }
 
     override fun voteDecrement(request: PostVoteDecrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {

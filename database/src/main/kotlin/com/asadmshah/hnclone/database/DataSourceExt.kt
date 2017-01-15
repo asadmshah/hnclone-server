@@ -1,12 +1,13 @@
 package com.asadmshah.hnclone.database
 
-import rx.Observable
+import io.reactivex.BackpressureStrategy
+import io.reactivex.Flowable
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.Statement
 import javax.sql.DataSource
 
-internal fun <T> DataSource.execute(q: String, function: (ResultSet?) -> Unit) {
+internal fun DataSource.execute(q: String, function: (ResultSet?) -> Unit) {
     var conn: Connection? = null
     var stmt: Statement? = null
     var rslt: ResultSet? = null
@@ -27,29 +28,27 @@ internal fun <T> DataSource.execute(q: String, function: (ResultSet?) -> Unit) {
 
 internal fun <T> DataSource.executeSingle(q: String, function: (ResultSet) -> T): T? {
     var response: T? = null
-    execute<T>(q, {
+    execute(q, {
         response = if (it != null && it.next()) function(it) else null
     })
     return response
 }
 
-internal fun <T> DataSource.executeObservable(q: String, function: (ResultSet) -> T): Observable<T> {
-    val observable = Observable
-            .create(Observable.OnSubscribe<T> { subscriber ->
-                execute<T>(q, { resultSet ->
+internal fun <T> DataSource.executeFlowable(q: String, function: (ResultSet) -> T): Flowable<T> {
+    val f = Flowable
+            .create<T>({ subscriber ->
+                execute(q, { resultSet ->
                     if (resultSet != null) {
                         while (resultSet.next()) {
-                            if (subscriber.isUnsubscribed) break
+                            if (subscriber.isCancelled) break
 
                             subscriber.onNext(function(resultSet))
                         }
                     }
 
-                    if (!subscriber.isUnsubscribed) {
-                        subscriber.onCompleted()
-                    }
+                    if (!subscriber.isCancelled) subscriber.onComplete()
                 })
-            })
+            }, BackpressureStrategy.BUFFER)
 
-    return Observable.defer { observable }
+    return Flowable.defer{ f }
 }

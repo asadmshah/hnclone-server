@@ -1,7 +1,7 @@
 package com.asadmshah.hnclone.database
 
 import com.asadmshah.hnclone.models.Post
-import rx.Observable
+import io.reactivex.Flowable
 import java.sql.ResultSet
 import javax.inject.Inject
 import javax.sql.DataSource
@@ -15,24 +15,24 @@ constructor(private val dataSource: DataSource): PostsDatabase {
                 .executeSingle("SELECT * FROM posts_create('$title', '$text', '$url', $userId);", ResultSet::getPost)
     }
 
-    override fun readTop(viewerId: Int, lim: Int, off: Int): Observable<Post> {
+    override fun readTop(viewerId: Int, lim: Int, off: Int): Flowable<Post> {
         return dataSource
-                .executeObservable("SELECT * FROM posts_read_top($viewerId) LIMIT $lim OFFSET $off;", ResultSet::getPost)
+                .executeFlowable("SELECT * FROM posts_read_top($viewerId) LIMIT $lim OFFSET $off;", ResultSet::getPost)
     }
 
-    override fun readTop(viewerId: Int, userId: Int, lim: Int, off: Int): Observable<Post> {
+    override fun readTop(viewerId: Int, userId: Int, lim: Int, off: Int): Flowable<Post> {
         return dataSource
-                .executeObservable("SELECT * FROM posts_read_by_user_top($viewerId, $userId) LIMIT $lim OFFSET $off;", ResultSet::getPost)
+                .executeFlowable("SELECT * FROM posts_read_by_user_top($viewerId, $userId) LIMIT $lim OFFSET $off;", ResultSet::getPost)
     }
 
-    override fun readNew(viewerId: Int, lim: Int, off: Int): Observable<Post> {
+    override fun readNew(viewerId: Int, lim: Int, off: Int): Flowable<Post> {
         return dataSource
-                .executeObservable("SELECT * FROM posts_read_new($viewerId) LIMIT $lim OFFSET $off;", ResultSet::getPost)
+                .executeFlowable("SELECT * FROM posts_read_new($viewerId) LIMIT $lim OFFSET $off;", ResultSet::getPost)
     }
 
-    override fun readNew(viewerId: Int, userId: Int, lim: Int, off: Int): Observable<Post> {
+    override fun readNew(viewerId: Int, userId: Int, lim: Int, off: Int): Flowable<Post> {
         return dataSource
-                .executeObservable("SELECT * FROM posts_read_by_user_new($viewerId, $userId) LIMIT $lim OFFSET $off;", ResultSet::getPost)
+                .executeFlowable("SELECT * FROM posts_read_by_user_new($viewerId, $userId) LIMIT $lim OFFSET $off;", ResultSet::getPost)
     }
 
     override fun read(viewerId: Int, postId: Int): Post? {
