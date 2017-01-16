@@ -1,8 +1,8 @@
 package com.asadmshah.hnclone.client;
 
-import com.asadmshah.hnclone.common.sessions.ExpiredTokenException;
 import com.asadmshah.hnclone.common.sessions.InvalidTokenException;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
+import com.asadmshah.hnclone.database.SessionsDatabase;
 import com.asadmshah.hnclone.database.UsersDatabase;
 import com.asadmshah.hnclone.errors.SessionsServiceErrors;
 import com.asadmshah.hnclone.models.RefreshSession;
@@ -34,6 +34,7 @@ public class SessionsServiceClientImplTest {
 
     @Mock private SessionManager sessionManager;
     @Mock private UsersDatabase usersDatabase;
+    @Mock private SessionsDatabase sessionsDatabase;
     @Mock private ServerComponent component;
     @Mock private SessionStorage sessionStorage;
 
@@ -44,6 +45,7 @@ public class SessionsServiceClientImplTest {
     public void setUp() throws Exception {
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.usersDatabase()).thenReturn(usersDatabase);
+        when(component.sessionsDatabase()).thenReturn(sessionsDatabase);
 
         baseClient = new TestBaseClientImpl(SessionsServiceEndpoint.create(component));
         sessionsClient = new SessionsServiceClientImpl(sessionStorage, baseClient);
@@ -58,7 +60,7 @@ public class SessionsServiceClientImplTest {
     public void refresh_shouldThrowExpiredTokenException() throws Exception {
         when(sessionStorage.getRequestKey()).thenReturn(SessionToken.getDefaultInstance());
         when(sessionStorage.getRefreshKey()).thenReturn(SessionToken.getDefaultInstance());
-        when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenThrow(ExpiredTokenException.class);
+        when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenThrow(SessionsServiceErrors.EXPIRED_TOKEN_EXCEPTION);
 
         StatusRuntimeException exception = null;
         try {
@@ -95,6 +97,7 @@ public class SessionsServiceClientImplTest {
         SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
 
         when(sessionStorage.getRequestKey()).thenReturn(requestT);
+        when(sessionsDatabase.read(anyString())).thenReturn(RefreshSession.getDefaultInstance());
 
         sessionsClient.refresh().blockingAwait();
 
@@ -116,6 +119,7 @@ public class SessionsServiceClientImplTest {
         when(sessionStorage.getRefreshKey()).thenReturn(refreshT);
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.getDefaultInstance());
         when(sessionManager.createRequestToken(anyInt())).thenReturn(SessionToken.getDefaultInstance());
+        when(sessionsDatabase.read(anyString())).thenReturn(RefreshSession.getDefaultInstance());
 
         sessionsClient.refresh().blockingAwait();
 
@@ -138,6 +142,7 @@ public class SessionsServiceClientImplTest {
         when(sessionStorage.getRefreshKey()).thenReturn(refreshT);
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.getDefaultInstance());
         when(sessionManager.createRequestToken(anyInt())).thenReturn(SessionToken.getDefaultInstance());
+        when(sessionsDatabase.read(anyString())).thenReturn(RefreshSession.getDefaultInstance());
 
         sessionsClient.refresh(true).blockingAwait();
 
