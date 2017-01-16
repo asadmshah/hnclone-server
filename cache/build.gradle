@@ -1,0 +1,29 @@
+plugins {
+    id "me.champeau.gradle.jmh" version "0.3.1"
+}
+
+version '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+jmh {
+    duplicateClassesStrategy = 'warn'
+    jmhVersion = '1.17'
+}
+
+dependencies {
+    compile project(':models')
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile group: 'com.google.guava', name: 'guava', version: "$guava_version"
+
+    compile group: 'com.google.dagger', name: 'dagger', version: "$dagger_version"
+    kapt    group: 'com.google.dagger', name: 'dagger-compiler', version: "$dagger_version"
+
+    compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.0.4'
+    compile group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '2.3.5'
+
+    jmh 'org.openjdk.jmh:jmh-core:1.17'
+}

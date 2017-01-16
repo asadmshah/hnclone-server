@@ -6,3 +6,5 @@ include 'server'
 include 'common'
 include 'pubsub'
 include 'client'
+include 'cache'
+
