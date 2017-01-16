@@ -40,4 +40,10 @@ class DatabaseModule {
         return postsDatabase
     }
 
+    @Provides
+    @Singleton
+    internal fun providesSessions(sessionsDatabase: SessionsDatabaseImpl): SessionsDatabase {
+        return sessionsDatabase
+    }
+
 }

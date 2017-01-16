@@ -3,6 +3,7 @@ package com.asadmshah.hnclone.server.endpoints
 import com.asadmshah.hnclone.common.sessions.ExpiredTokenException
 import com.asadmshah.hnclone.common.sessions.InvalidTokenException
 import com.asadmshah.hnclone.common.sessions.SessionManager
+import com.asadmshah.hnclone.database.SessionsDatabase
 import com.asadmshah.hnclone.database.UsersDatabase
 import com.asadmshah.hnclone.errors.CommonServiceErrors
 import com.asadmshah.hnclone.errors.SessionsServiceErrors
@@ -24,16 +25,22 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
     }
 
     private val usersDatabase: UsersDatabase
+    private val sessionsDatabase: SessionsDatabase
     private val sessions: SessionManager
 
     init {
         this.usersDatabase = component.usersDatabase()
+        this.sessionsDatabase = component.sessionsDatabase()
         this.sessions = component.sessionManager()
     }
 
     override fun refresh(request: SessionToken, responseObserver: StreamObserver<SessionToken>) {
         try {
             val session = sessions.parseRefreshToken(request)
+            if (sessionsDatabase.read(session.uuid) == null) {
+                responseObserver.onError(SessionsServiceErrors.INVALID_TOKEN_EXCEPTION)
+                return
+            }
             responseObserver.onNext(sessions.createRequestToken(session.id))
             responseObserver.onCompleted()
         } catch (e: ExpiredTokenException) {

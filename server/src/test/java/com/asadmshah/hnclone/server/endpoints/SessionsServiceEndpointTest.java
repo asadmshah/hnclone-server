@@ -3,6 +3,7 @@ package com.asadmshah.hnclone.server.endpoints;
 import com.asadmshah.hnclone.common.sessions.ExpiredTokenException;
 import com.asadmshah.hnclone.common.sessions.InvalidTokenException;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
+import com.asadmshah.hnclone.database.SessionsDatabase;
 import com.asadmshah.hnclone.database.UsersDatabase;
 import com.asadmshah.hnclone.errors.CommonServiceErrors;
 import com.asadmshah.hnclone.errors.SessionsServiceErrors;
@@ -50,12 +51,14 @@ public class SessionsServiceEndpointTest {
 
     @Mock private SessionManager sessionManager;
     @Mock private UsersDatabase usersDatabase;
+    @Mock private SessionsDatabase sessionsDatabase;
     @Mock private ServerComponent component;
 
     @Before
     public void setUp() throws Exception {
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.usersDatabase()).thenReturn(usersDatabase);
+        when(component.sessionsDatabase()).thenReturn(sessionsDatabase);
 
         inProcessServer = InProcessServerBuilder
                 .forName(UNIQUE_SERVER_NAME)
@@ -105,6 +108,22 @@ public class SessionsServiceEndpointTest {
     }
 
     @Test
+    public void refresh_shouldFailOnNoSessions() {
+        when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.getDefaultInstance());
+        when(sessionsDatabase.read(anyString())).thenReturn(null);
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.refresh(SessionToken.getDefaultInstance());
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.INVALID_TOKEN.getDescription());
+    }
+
+    @Test
     public void refresh_shouldComplete() {
         SessionToken refreshToken = createSessionToken("a1", "a2");
 
@@ -112,6 +131,7 @@ public class SessionsServiceEndpointTest {
 
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.newBuilder().setId(10).build());
         when(sessionManager.createRequestToken(anyInt())).thenReturn(expRequestToken);
+        when(sessionsDatabase.read(anyString())).thenReturn(RefreshSession.getDefaultInstance());
 
         SessionToken resRequestToken = inProcessStub.refresh(refreshToken);
 
