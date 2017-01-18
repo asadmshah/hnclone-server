@@ -11,6 +11,7 @@ dependencies {
     compile project(':database')
     compile project(':common')
     compile project(':pubsub')
+    compile project(':cache')
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile group: 'org.apache.commons', name: 'commons-configuration2', version: "$commons_configuration_version"

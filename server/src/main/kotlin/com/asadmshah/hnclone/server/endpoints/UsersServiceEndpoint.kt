@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.server.endpoints
 
+import com.asadmshah.hnclone.cache.BlockedSessionsCache
 import com.asadmshah.hnclone.common.tools.escape
 import com.asadmshah.hnclone.database.UserExistsException
 import com.asadmshah.hnclone.database.UsersDatabase
@@ -32,9 +33,11 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     }
 
     private val usersDatabase: UsersDatabase
+    private val blockedSessionsCache: BlockedSessionsCache
 
     init {
         this.usersDatabase = component.usersDatabase()
+        this.blockedSessionsCache = component.blockedSessionsCache()
     }
 
     override fun create(request: UserCreateRequest, responseObserver: StreamObserver<User>) {
@@ -177,6 +180,8 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
             responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
             return
         }
+
+        blockedSessionsCache.put(session.id)
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()

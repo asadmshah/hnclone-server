@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.server.endpoints;
 
+import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.common.tools.StringExtKt;
 import com.asadmshah.hnclone.database.PostsDatabase;
@@ -27,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -51,6 +53,7 @@ public class PostsServiceEndpointTest {
     @Mock private SessionManager sessionManager;
     @Mock private PostsDatabase postsDatabase;
     @Mock private ServerComponent component;
+    @Mock private BlockedSessionsCache blockedSessionsCache;
 
     @Captor private ArgumentCaptor<Integer> uidCaptor;
     @Captor private ArgumentCaptor<String> pscTitleCaptor;
@@ -68,6 +71,9 @@ public class PostsServiceEndpointTest {
     public void setUp() throws Exception {
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.postsDatabase()).thenReturn(postsDatabase);
+        when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
+
+        when(blockedSessionsCache.contains(anyInt(), any(LocalDateTime.class))).thenReturn(false);
 
         inProcessChannel = InProcessChannelBuilder
                 .forName(SERVER_NAME)

@@ -1,5 +1,7 @@
 package com.asadmshah.hnclone.server;
 
+import com.asadmshah.hnclone.cache.BlockedSessionsCache;
+import com.asadmshah.hnclone.cache.CacheModule;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.common.sessions.SessionManagerModule;
 import com.asadmshah.hnclone.database.DatabaseModule;
@@ -19,7 +21,8 @@ import javax.inject.Singleton;
                 ServerModule.class,
                 DatabaseModule.class,
                 SessionManagerModule.class,
-                PubSubModule.class
+                PubSubModule.class,
+                CacheModule.class
         }
 )
 public interface ServerComponent {
@@ -29,4 +32,6 @@ public interface ServerComponent {
     PostsDatabase postsDatabase();
     SessionsDatabase sessionsDatabase();
     PubSub pubSub();
+    BlockedSessionsCache blockedSessionsCache();
+
 }

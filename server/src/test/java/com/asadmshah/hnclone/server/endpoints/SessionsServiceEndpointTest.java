@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.server.endpoints;
 
+import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.ExpiredTokenException;
 import com.asadmshah.hnclone.common.sessions.InvalidTokenException;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
@@ -29,6 +30,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -52,6 +56,7 @@ public class SessionsServiceEndpointTest {
     @Mock private SessionManager sessionManager;
     @Mock private UsersDatabase usersDatabase;
     @Mock private SessionsDatabase sessionsDatabase;
+    @Mock private BlockedSessionsCache blockedSessionsCache;
     @Mock private ServerComponent component;
 
     @Before
@@ -59,6 +64,7 @@ public class SessionsServiceEndpointTest {
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.usersDatabase()).thenReturn(usersDatabase);
         when(component.sessionsDatabase()).thenReturn(sessionsDatabase);
+        when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
 
         inProcessServer = InProcessServerBuilder
                 .forName(UNIQUE_SERVER_NAME)
@@ -126,17 +132,19 @@ public class SessionsServiceEndpointTest {
     @Test
     public void refresh_shouldComplete() {
         SessionToken refreshToken = createSessionToken("a1", "a2");
-
         SessionToken expRequestToken = createSessionToken("b1", "b2");
+        RefreshSession refreshSession = RefreshSession.newBuilder().setId(10).build();
 
-        when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(RefreshSession.newBuilder().setId(10).build());
+        when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenReturn(refreshSession);
         when(sessionManager.createRequestToken(anyInt())).thenReturn(expRequestToken);
-        when(sessionsDatabase.read(anyString())).thenReturn(RefreshSession.getDefaultInstance());
+        when(sessionsDatabase.read(anyString())).thenReturn(refreshSession);
+        when(blockedSessionsCache.contains(anyInt(), any(LocalDateTime.class))).thenReturn(false);
 
         SessionToken resRequestToken = inProcessStub.refresh(refreshToken);
 
         verify(sessionManager).parseRefreshToken(refreshToken);
         verify(sessionManager).createRequestToken(10);
+        verify(blockedSessionsCache).contains(refreshSession.getId(), LocalDateTime.ofInstant(Instant.ofEpochMilli(refreshSession.getIssued()), ZoneOffset.UTC));
 
         assertThat(resRequestToken).isNotNull();
         assertThat(resRequestToken).isEqualTo(expRequestToken);

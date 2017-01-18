@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.server.endpoints;
 
+import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.UserExistsException;
 import com.asadmshah.hnclone.database.UsersDatabase;
@@ -28,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -50,12 +52,16 @@ public class UsersServiceEndpointTest {
 
     @Mock private SessionManager sessionManager;
     @Mock private UsersDatabase usersDatabase;
+    @Mock private BlockedSessionsCache blockedSessionsCache;
     @Mock private ServerComponent component;
 
     @Before
     public void setUp() throws Exception {
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.usersDatabase()).thenReturn(usersDatabase);
+        when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
+
+        when(blockedSessionsCache.contains(anyInt(), any(LocalDateTime.class))).thenReturn(false);
 
         inProcessServer = InProcessServerBuilder
                 .forName(SERVER_NAME)
@@ -601,6 +607,7 @@ public class UsersServiceEndpointTest {
         UserDeleteResponse res = inProcessStub.delete(req);
 
         verify(usersDatabase).delete(idCaptor.capture());
+        verify(blockedSessionsCache).put(expUser.getId());
 
         assertThat(idCaptor.getValue()).isEqualTo(expUser.getId());
 
