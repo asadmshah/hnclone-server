@@ -615,4 +615,100 @@ public class UsersServiceEndpointTest {
         assertThat(res.getDeleted()).isTrue();
     }
 
+    @Test
+    public void updatePassword_throwsUnauthenticatedException() throws Exception {
+        UserUpdatePasswordRequest request = UserUpdatePasswordRequest.getDefaultInstance();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.updatePassword(request);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
+    }
+
+    @Test
+    public void updatePassword_shouldThrowSQLException() throws Exception {
+        RequestSession session = RequestSession.getDefaultInstance();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(usersDatabase.updatePassword(anyInt(), anyString())).thenThrow(SQLException.class);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        UserUpdatePasswordRequest request = UserUpdatePasswordRequest
+                .newBuilder()
+                .setPassword("password")
+                .build();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.updatePassword(request);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+    }
+
+    @Test
+    public void updatePassword_shouldReturnNullUpdatePasswordResult() throws Exception {
+        RequestSession session = RequestSession.getDefaultInstance();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(usersDatabase.updatePassword(anyInt(), anyString())).thenReturn(null);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        UserUpdatePasswordRequest request = UserUpdatePasswordRequest
+                .newBuilder()
+                .setPassword("password")
+                .build();
+
+        StatusRuntimeException exception = null;
+        try {
+            inProcessStub.updatePassword(request);
+        } catch (StatusRuntimeException e) {
+            exception = e;
+        }
+
+        assertThat(exception).isNotNull();
+        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+    }
+
+    @Test
+    public void updatePassword_shouldComplete() throws Exception {
+        RequestSession session = RequestSession
+                .newBuilder()
+                .setId(10)
+                .build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(usersDatabase.updatePassword(anyInt(), anyString())).thenReturn(true);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        UserUpdatePasswordRequest request = UserUpdatePasswordRequest
+                .newBuilder()
+                .setPassword("password")
+                .build();
+
+        UserUpdatePasswordResponse response = inProcessStub.updatePassword(request);
+
+        verify(usersDatabase).updatePassword(session.getId(), request.getPassword());
+        verify(blockedSessionsCache).put(session.getId());
+
+        assertThat(response).isNotNull();
+    }
+
 }

@@ -158,6 +158,41 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         responseObserver.onCompleted()
     }
 
+    override fun updatePassword(request: UserUpdatePasswordRequest, responseObserver: StreamObserver<UserUpdatePasswordResponse>) {
+        val session = SessionInterceptor.KEY_SESSION.get(Context.current())
+        if (session == null) {
+            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            return
+        }
+
+        val password = if (request.password.isNullOrBlank()) null else request.password.trim().escape()
+        if (password == null || password.isBlank()) {
+            responseObserver.onError(UsersServiceErrors.PASSWORD_INSECURE_EXCEPTION)
+            return
+        }
+
+        var response: UserUpdatePasswordResponse? = null
+        try {
+            val s = usersDatabase.updatePassword(session.id, password)
+            if (s != null && s) {
+                response = UserUpdatePasswordResponse.getDefaultInstance()
+            }
+        } catch (e: SQLException) {
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            return
+        }
+
+        if (response == null) {
+            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            return
+        }
+
+        blockedSessionsCache.put(session.id)
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+
     override fun delete(request: UserDeleteRequest, responseObserver: StreamObserver<UserDeleteResponse>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {

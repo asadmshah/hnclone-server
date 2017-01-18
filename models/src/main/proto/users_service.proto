@@ -13,6 +13,7 @@ service UsersService {
     rpc ReadUsingID (UserReadUsingIDRequest) returns (User);
     rpc ReadUsingName (UserReadUsingNameRequest) returns (User);
     rpc UpdateAbout (UserUpdateAboutRequest) returns (UserUpdateAboutResponse);
+    rpc UpdatePassword (UserUpdatePasswordRequest) returns (UserUpdatePasswordResponse);
     rpc Delete (UserDeleteRequest) returns (UserDeleteResponse);
 }
 
@@ -36,6 +37,14 @@ message UserUpdateAboutRequest {
 
 message UserUpdateAboutResponse {
     string about = 1;
+}
+
+message UserUpdatePasswordRequest {
+    string password = 1;
+}
+
+message UserUpdatePasswordResponse {
+
 }
 
 message UserDeleteRequest {
