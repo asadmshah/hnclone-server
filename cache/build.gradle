@@ -18,6 +18,7 @@ dependencies {
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile group: 'com.google.guava', name: 'guava', version: "$guava_version"
+    compile group: 'org.apache.commons', name: 'commons-configuration2', version: "$commons_configuration_version"
 
     compile group: 'com.google.dagger', name: 'dagger', version: "$dagger_version"
     kapt    group: 'com.google.dagger', name: 'dagger-compiler', version: "$dagger_version"
