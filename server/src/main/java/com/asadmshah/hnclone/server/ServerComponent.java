@@ -1,6 +1,7 @@
 package com.asadmshah.hnclone.server;
 
 import com.asadmshah.hnclone.cache.BlockedSessionsCache;
+import com.asadmshah.hnclone.cache.Cache;
 import com.asadmshah.hnclone.cache.CacheModule;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.common.sessions.SessionManagerModule;
@@ -33,5 +34,6 @@ public interface ServerComponent {
     SessionsDatabase sessionsDatabase();
     PubSub pubSub();
     BlockedSessionsCache blockedSessionsCache();
+    Cache cache();
 
 }

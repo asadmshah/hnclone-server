@@ -11,9 +11,15 @@ internal class CacheModule {
 
     @Provides
     @Singleton
-    internal fun providesBlockedSessionsCache(configuration: Configuration): BlockedSessionsCache {
+    internal fun providesCache(cache: CacheImpl): Cache {
+        return cache
+    }
+
+    @Provides
+    @Singleton
+    internal fun providesBlockedSessionsCache(cache: Cache, configuration: Configuration): BlockedSessionsCache {
         val expiration = configuration.getLong("auth.request.expire", 10)
-        return BlockedSessionsCacheImpl(expiration, TimeUnit.MINUTES)
+        return BlockedSessionsCacheImpl(cache, expiration, TimeUnit.MINUTES)
     }
 
 }
