@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.client;
 
+import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.InvalidTokenException;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.SessionsDatabase;
@@ -37,6 +38,7 @@ public class SessionsServiceClientImplTest {
     @Mock private SessionsDatabase sessionsDatabase;
     @Mock private ServerComponent component;
     @Mock private SessionStorage sessionStorage;
+    @Mock private BlockedSessionsCache blockedSessionsCache;
 
     private BaseClient baseClient;
     private SessionsServiceClientImpl sessionsClient;
@@ -46,6 +48,7 @@ public class SessionsServiceClientImplTest {
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.usersDatabase()).thenReturn(usersDatabase);
         when(component.sessionsDatabase()).thenReturn(sessionsDatabase);
+        when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
 
         baseClient = new TestBaseClientImpl(SessionsServiceEndpoint.create(component));
         sessionsClient = new SessionsServiceClientImpl(sessionStorage, baseClient);

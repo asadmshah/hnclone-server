@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.client;
 
+import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.UserExistsException;
 import com.asadmshah.hnclone.database.UsersDatabase;
@@ -36,6 +37,7 @@ public class UsersServiceClientImplTest {
     @Mock private UsersDatabase usersDatabase;
     @Mock private SessionStorage sessions;
     @Mock private ServerComponent component;
+    @Mock private BlockedSessionsCache blockedSessionsCache;
 
     private BaseClient baseClient;
     private SessionsServiceClient sessionsClient;
@@ -45,6 +47,7 @@ public class UsersServiceClientImplTest {
     public void setUp() throws Exception {
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.usersDatabase()).thenReturn(usersDatabase);
+        when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
 
         baseClient = new TestBaseClientImpl(UsersServiceEndpoint.create(component));
         sessionsClient = new SessionsServiceClientImpl(sessions, baseClient);
