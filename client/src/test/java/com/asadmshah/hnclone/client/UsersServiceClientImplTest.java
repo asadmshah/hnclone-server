@@ -276,11 +276,9 @@ public class UsersServiceClientImplTest {
         when(sessions.getRequestKey()).thenReturn(requestT);
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
 
-        boolean response = usersClient.delete().blockingGet();
+        usersClient.delete().blockingAwait();
 
         verify(usersDatabase).delete(requestS.getId());
-
-        assertThat(response).isTrue();
     }
 
     @Test

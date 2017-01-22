@@ -81,15 +81,15 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                 }
     }
 
-    override fun delete(): Single<Boolean> {
+    override fun delete(): Completable {
         return sessionsClient
                 .refresh()
                 .andThen(justDelete())
                 .onStatusRuntimeErrorResumeNext()
     }
 
-    internal fun justDelete(): Single<Boolean> {
-        return Single
+    internal fun justDelete(): Completable {
+        return Completable
                 .fromCallable {
                     val md = io.grpc.Metadata()
                     sessionsStore.getRequestKey()?.let {
