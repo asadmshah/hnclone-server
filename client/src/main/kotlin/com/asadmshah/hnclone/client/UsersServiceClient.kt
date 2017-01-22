@@ -1,10 +1,8 @@
 package com.asadmshah.hnclone.client
 
 import com.asadmshah.hnclone.models.User
-import com.asadmshah.hnclone.services.UserCreateRequest
-import com.asadmshah.hnclone.services.UserReadUsingIDRequest
-import com.asadmshah.hnclone.services.UserReadUsingNameRequest
-import com.asadmshah.hnclone.services.UserUpdateAboutRequest
+import com.asadmshah.hnclone.services.*
+import io.reactivex.Completable
 import io.reactivex.Single
 
 interface UsersServiceClient {
@@ -16,6 +14,8 @@ interface UsersServiceClient {
     fun read(request: UserReadUsingNameRequest): Single<User>
 
     fun update(request: UserUpdateAboutRequest): Single<String>
+
+    fun update(request: UserUpdatePasswordRequest): Completable
 
     fun delete(): Single<Boolean>
 

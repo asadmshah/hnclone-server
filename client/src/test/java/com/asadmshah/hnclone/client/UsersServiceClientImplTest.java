@@ -14,6 +14,7 @@ import com.asadmshah.hnclone.server.endpoints.UsersServiceEndpoint;
 import com.asadmshah.hnclone.services.UserCreateRequest;
 import com.asadmshah.hnclone.services.UserReadUsingIDRequest;
 import com.asadmshah.hnclone.services.UserUpdateAboutRequest;
+import com.asadmshah.hnclone.services.UserUpdatePasswordRequest;
 import io.grpc.StatusRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -280,6 +281,23 @@ public class UsersServiceClientImplTest {
         verify(usersDatabase).delete(requestS.getId());
 
         assertThat(response).isTrue();
+    }
+
+    @Test
+    public void updatePassword_shouldComplete() throws Exception {
+        RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
+        SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
+
+        UserUpdatePasswordRequest request = UserUpdatePasswordRequest
+                .newBuilder()
+                .setPassword("password")
+                .build();
+
+        when(sessions.getRequestKey()).thenReturn(requestT);
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
+        when(usersDatabase.updatePassword(anyInt(), anyString())).thenReturn(true);
+
+        usersClient.update(request).blockingAwait();
     }
 
 }

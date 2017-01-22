@@ -4,6 +4,7 @@ import com.asadmshah.hnclone.models.User
 import com.asadmshah.hnclone.services.*
 import io.grpc.Metadata
 import io.grpc.stub.MetadataUtils
+import io.reactivex.Completable
 import io.reactivex.Single
 
 internal class
@@ -58,6 +59,25 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                     }
                     val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
                     stub.updateAbout(request).about
+                }
+    }
+
+    override fun update(request: UserUpdatePasswordRequest): Completable {
+        return sessionsClient
+                .refresh()
+                .andThen(justUpdate(request))
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun justUpdate(request: UserUpdatePasswordRequest): Completable {
+        return Completable
+                .fromCallable {
+                    val md = io.grpc.Metadata()
+                    sessionsStore.getRequestKey()?.let {
+                        md.put(AUTHORIZATION_KEY, it.toByteArray())
+                    }
+                    val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
+                    stub.updatePassword(request)
                 }
     }
 
