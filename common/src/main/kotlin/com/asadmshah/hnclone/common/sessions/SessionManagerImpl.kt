@@ -5,7 +5,7 @@ import com.asadmshah.hnclone.models.RequestSession
 import com.asadmshah.hnclone.models.SessionToken
 import com.google.protobuf.ByteString
 import com.google.protobuf.InvalidProtocolBufferException
-import java.util.*
+import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -50,12 +50,13 @@ internal class SessionManagerImpl constructor(req: ByteArray, ref: ByteArray) : 
 
     override fun parseRequestToken(token: SessionToken): RequestSession {
         try {
-            val data = token.data.toByteArray()
-            if (!Arrays.equals(token.sign.toByteArray(), synchronized(reqmac, { reqmac.doFinal(data) }))) {
+            val pa = token.sign.toByteArray()
+            val pb = synchronized(reqmac, { reqmac.doFinal(token.data.toByteArray()) })
+            if (!MessageDigest.isEqual(pa, pb)) {
                 throw TamperedTokenException()
             }
 
-            val reqs = RequestSession.parseFrom(data)
+            val reqs = RequestSession.parseFrom(token.data.toByteArray())
             if (System.currentTimeMillis() > reqs.expire) {
                 throw ExpiredTokenException()
             }
@@ -87,12 +88,13 @@ internal class SessionManagerImpl constructor(req: ByteArray, ref: ByteArray) : 
 
     override fun parseRefreshToken(token: SessionToken): RefreshSession {
         try {
-            val data = token.data.toByteArray()
-            if (!Arrays.equals(token.sign.toByteArray(), synchronized(refmac, { refmac.doFinal(data) }))) {
+            val pa = token.sign.toByteArray()
+            val pb = synchronized(refmac, { refmac.doFinal(token.data.toByteArray()) })
+            if (!MessageDigest.isEqual(pa, pb)) {
                 throw TamperedTokenException()
             }
 
-            val reqs = RefreshSession.parseFrom(data)
+            val reqs = RefreshSession.parseFrom(token.data.toByteArray())
             if (System.currentTimeMillis() > reqs.expire) {
                 throw ExpiredTokenException()
             }
