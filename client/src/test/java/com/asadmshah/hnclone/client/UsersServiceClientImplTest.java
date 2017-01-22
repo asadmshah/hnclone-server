@@ -279,6 +279,7 @@ public class UsersServiceClientImplTest {
         usersClient.delete().blockingAwait();
 
         verify(usersDatabase).delete(requestS.getId());
+        verify(sessions).clear();
     }
 
     @Test

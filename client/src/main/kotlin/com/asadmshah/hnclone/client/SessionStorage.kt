@@ -11,4 +11,6 @@ interface SessionStorage {
     fun getRequestKey(): SessionToken?
 
     fun getRefreshKey(): SessionToken?
+
+    fun clear()
 }

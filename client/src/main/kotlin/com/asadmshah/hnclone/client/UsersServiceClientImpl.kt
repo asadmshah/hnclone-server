@@ -97,6 +97,8 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                     }
                     val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
                     stub.delete(UserDeleteRequest.getDefaultInstance()).deleted
+
+                    sessionsStore.clear()
                 }
     }
 
