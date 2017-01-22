@@ -100,7 +100,6 @@ public class SessionsServiceClientImplTest {
         SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
 
         when(sessionStorage.getRequestKey()).thenReturn(requestT);
-        when(sessionsDatabase.read(anyString())).thenReturn(RefreshSession.getDefaultInstance());
 
         sessionsClient.refresh().blockingAwait();
 
