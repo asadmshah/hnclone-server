@@ -1,11 +1,9 @@
 package com.asadmshah.hnclone.client
 
 import io.grpc.StatusRuntimeException
-import io.reactivex.Completable
-import io.reactivex.Observable
-import io.reactivex.ObservableSource
-import io.reactivex.Single
+import io.reactivex.*
 import io.reactivex.functions.Function
+import org.reactivestreams.Publisher
 
 internal fun Completable.onStatusRuntimeErrorResumeNext(): Completable {
     return onErrorResumeNext {
@@ -33,6 +31,16 @@ internal fun <T> Observable<T>.onStatusRuntimeErrorResumeNext(): Observable<T> {
             Observable.error(restoreError(it))
         } else {
             Observable.error(it)
+        }
+    })
+}
+
+internal fun <T> Flowable<T>.onStatusRuntimeErrorResumeNext(): Flowable<T> {
+    return onErrorResumeNext(Function<Throwable, Publisher<T>> {
+        if (it is StatusRuntimeException) {
+            Flowable.error(restoreError(it))
+        } else {
+            Flowable.error(it)
         }
     })
 }

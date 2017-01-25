@@ -19,7 +19,7 @@ SessionsServiceClientImpl(private val sessions: SessionStorage,
         return refresh(false)
     }
 
-    override fun refresh(force: Boolean): Completable {
+    override fun refresh(force: Boolean, nullable: Boolean): Completable {
         return Completable
                 .fromCallable {
                     val reqk = sessions.getRequestKey()
@@ -35,7 +35,11 @@ SessionsServiceClientImpl(private val sessions: SessionStorage,
                             0
                         }
                     } else {
-                        throw SessionsServiceErrors.INVALID_TOKEN_EXCEPTION
+                        if (nullable) {
+                            0
+                        } else {
+                            throw SessionsServiceErrors.INVALID_TOKEN_EXCEPTION
+                        }
                     }
                 }
                 .onStatusRuntimeErrorResumeNext()

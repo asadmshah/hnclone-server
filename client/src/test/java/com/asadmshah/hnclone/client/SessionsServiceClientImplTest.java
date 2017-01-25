@@ -67,7 +67,7 @@ public class SessionsServiceClientImplTest {
 
         StatusRuntimeException exception = null;
         try {
-            sessionsClient.refresh(true).blockingAwait();
+            sessionsClient.refresh(true, false).blockingAwait();
         } catch (StatusRuntimeException e) {
             exception = e;
         }
@@ -146,7 +146,7 @@ public class SessionsServiceClientImplTest {
         when(sessionManager.createRequestToken(anyInt())).thenReturn(SessionToken.getDefaultInstance());
         when(sessionsDatabase.read(anyString())).thenReturn(RefreshSession.getDefaultInstance());
 
-        sessionsClient.refresh(true).blockingAwait();
+        sessionsClient.refresh(true, false).blockingAwait();
 
         verify(sessionStorage, times(1)).getRefreshKey();
         verify(sessionStorage, times(1)).getRequestKey();
