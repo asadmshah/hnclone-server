@@ -634,4 +634,20 @@ public class PostsServiceClientImplTest {
         assertThat(resScores).containsExactlyElementsIn(expScores);
     }
 
+    @Test
+    public void postVoteStreamFiltered_shouldComplete() throws Exception {
+        List<PostScore> scores = new ArrayList<>(2);
+        for (int i = 0; i < 10; i++) {
+            scores.add(PostScore.newBuilder().setId(i).build());
+        }
+
+        PostScore expScore = scores.get(5);
+
+        when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).delay(16, TimeUnit.MILLISECONDS));
+
+        PostScore resScore = postsServiceClient.voteStream(expScore.getId()).blockingFirst();
+
+        assertThat(resScore).isEqualTo(expScore);
+    }
+
 }

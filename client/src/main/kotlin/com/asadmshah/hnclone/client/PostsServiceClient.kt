@@ -30,4 +30,6 @@ interface PostsServiceClient {
 
     fun voteStream(): Flowable<PostScore>
 
+    fun voteStream(id: Int): Flowable<PostScore>
+
 }

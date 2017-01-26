@@ -170,12 +170,20 @@ internal class PostsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     override fun voteStream(): Flowable<PostScore> {
+        return voteStream(PostScoreChangeRequest.getDefaultInstance())
+    }
+
+    override fun voteStream(id: Int): Flowable<PostScore> {
+        return voteStream(PostScoreChangeRequest.newBuilder().setId(id).build())
+    }
+
+    internal fun voteStream(request: PostScoreChangeRequest): Flowable<PostScore> {
         return Flowable
-                .defer { justVoteStream() }
+                .defer { justVoteStream(request) }
                 .onStatusRuntimeErrorResumeNext()
     }
 
-    internal fun justVoteStream(): Flowable<PostScore> {
+    internal fun justVoteStream(request: PostScoreChangeRequest): Flowable<PostScore> {
         return Flowable
                 .create<PostScore>({ subscriber ->
                     val call = baseClient.getChannel().newCall(PostsServiceGrpc.METHOD_POST_SCORE_CHANGE_STREAM, CallOptions.DEFAULT)
@@ -201,7 +209,7 @@ internal class PostsServiceClientImpl(private val sessions: SessionStorage,
                         }
 
                         override fun onReady() {
-                            call.sendMessage(PostScoreChangeRequest.getDefaultInstance())
+                            call.sendMessage(request)
                             call.halfClose()
                             call.request(1)
                         }
