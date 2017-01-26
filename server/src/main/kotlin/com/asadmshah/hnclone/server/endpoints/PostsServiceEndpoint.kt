@@ -6,7 +6,9 @@ import com.asadmshah.hnclone.database.PostsDatabase
 import com.asadmshah.hnclone.errors.CommonServiceErrors
 import com.asadmshah.hnclone.errors.PostServiceErrors
 import com.asadmshah.hnclone.models.Post
+import com.asadmshah.hnclone.models.PostScore
 import com.asadmshah.hnclone.models.RequestSession
+import com.asadmshah.hnclone.pubsub.PubSub
 import com.asadmshah.hnclone.server.ServerComponent
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor
 import com.asadmshah.hnclone.services.*
@@ -33,9 +35,11 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     }
 
     private val postsDatabase: PostsDatabase
+    private val pubSub: PubSub
 
     init {
         this.postsDatabase = component.postsDatabase()
+        this.pubSub = component.pubSub()
     }
 
     override fun create(request: PostCreateRequest, responseObserver: StreamObserver<Post>) {
@@ -414,5 +418,43 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
+    }
+
+    override fun postScoreChangeStream(request: PostScoreChangeRequest, responseObserver: StreamObserver<PostScore>) {
+        pubSub.subPostScore()
+                .subscribe(object : Subscriber<PostScore> {
+
+                    private var s: Subscription? = null
+
+                    override fun onSubscribe(s: Subscription) {
+                        this.s = s
+                        this.s?.request(1)
+                    }
+
+                    override fun onError(t: Throwable) {
+                        try {
+                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                        } catch (e: Exception) {
+
+                        }
+                    }
+
+                    override fun onNext(v: PostScore) {
+                        try {
+                            responseObserver.onNext(v)
+                            this.s?.request(1)
+                        } catch (e: Exception) {
+
+                        }
+                    }
+
+                    override fun onComplete() {
+                        try {
+                            responseObserver.onCompleted()
+                        } catch (e: Exception) {
+
+                        }
+                    }
+                })
     }
 }

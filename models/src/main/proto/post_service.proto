@@ -3,6 +3,7 @@ syntax = "proto3";
 package hnclone;
 
 import "post.proto";
+import "post_score.proto";
 
 option java_multiple_files = true;
 option java_package = "com.asadmshah.hnclone.services";
@@ -19,6 +20,8 @@ service PostsService {
     rpc VoteDecrement (PostVoteDecrementRequest) returns (PostScoreResponse);
     rpc VoteIncrement (PostVoteIncrementRequest) returns (PostScoreResponse);
     rpc VoteRemove (PostVoteRemoveRequest) returns (PostScoreResponse);
+
+    rpc PostScoreChangeStream (PostScoreChangeRequest) returns (stream PostScore);
 }
 
 message PostCreateRequest {
@@ -67,4 +70,8 @@ message PostReadListFromUserRequest {
     uint32      id              = 1;
     uint32      limit           = 2;
     uint32      offset          = 3;
+}
+
+message PostScoreChangeRequest {
+
 }

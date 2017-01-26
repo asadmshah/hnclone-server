@@ -7,7 +7,9 @@ import com.asadmshah.hnclone.database.PostsDatabase;
 import com.asadmshah.hnclone.errors.CommonServiceErrors;
 import com.asadmshah.hnclone.errors.PostServiceErrors;
 import com.asadmshah.hnclone.models.Post;
+import com.asadmshah.hnclone.models.PostScore;
 import com.asadmshah.hnclone.models.RequestSession;
+import com.asadmshah.hnclone.pubsub.PubSub;
 import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor;
 import com.asadmshah.hnclone.services.*;
@@ -54,6 +56,7 @@ public class PostsServiceEndpointTest {
     @Mock private PostsDatabase postsDatabase;
     @Mock private ServerComponent component;
     @Mock private BlockedSessionsCache blockedSessionsCache;
+    @Mock private PubSub pubSub;
 
     @Captor private ArgumentCaptor<Integer> uidCaptor;
     @Captor private ArgumentCaptor<String> pscTitleCaptor;
@@ -72,6 +75,7 @@ public class PostsServiceEndpointTest {
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.postsDatabase()).thenReturn(postsDatabase);
         when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
+        when(component.pubSub()).thenReturn(pubSub);
 
         when(blockedSessionsCache.contains(anyInt(), any(LocalDateTime.class))).thenReturn(false);
 
@@ -1445,6 +1449,50 @@ public class PostsServiceEndpointTest {
         call.cancel("No longer needed.", null);
 
         assertThat(returnedPosts.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void postScoreChangeStream_shouldComplete() throws Exception {
+        List<PostScore> scores = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            scores.add(PostScore.newBuilder().setId(i).build());
+        }
+
+        List<PostScore> expScores = scores.subList(0, 5);
+
+        when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).delay(110, TimeUnit.MILLISECONDS));
+
+        CountDownLatch counter = new CountDownLatch(5);
+
+        final List<PostScore> resScores = new ArrayList<>();
+
+        final ClientCall<PostScoreChangeRequest, PostScore> call = inProcessChannel.newCall(PostsServiceGrpc.METHOD_POST_SCORE_CHANGE_STREAM, CallOptions.DEFAULT);
+        call.start(new ClientCall.Listener<PostScore>() {
+            @Override
+            public void onMessage(PostScore message) {
+                resScores.add(message);
+                counter.countDown();
+                call.request(1);
+            }
+
+            @Override
+            public void onReady() {
+                call.sendMessage(PostScoreChangeRequest.getDefaultInstance());
+                call.halfClose();
+                call.request(1);
+            }
+
+            @Override
+            public void onClose(Status status, Metadata trailers) {
+//                super.onClose(status, trailers);
+            }
+        }, new Metadata());
+
+        counter.await();
+
+        call.cancel("Cancel", null);
+
+        assertThat(resScores).containsExactlyElementsIn(expScores);
     }
 
 }
