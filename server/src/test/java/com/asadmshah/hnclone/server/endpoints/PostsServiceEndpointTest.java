@@ -1472,7 +1472,7 @@ public class PostsServiceEndpointTest {
             public void onMessage(PostScore message) {
                 resScores.add(message);
                 counter.countDown();
-                call.request(1);
+                call.request(resScores.size() < 5 ? 1 : 0);
             }
 
             @Override

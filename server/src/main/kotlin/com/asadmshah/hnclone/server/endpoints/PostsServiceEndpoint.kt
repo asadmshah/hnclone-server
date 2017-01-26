@@ -426,7 +426,9 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             flowable = flowable.filter { it.id == request.id }
         }
 
-        flowable.subscribe(object : Subscriber<PostScore> {
+        flowable
+                .onBackpressureLatest()
+                .subscribe(object : Subscriber<PostScore> {
 
                     private var s: Subscription? = null
 
