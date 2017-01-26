@@ -6,8 +6,10 @@ import com.asadmshah.hnclone.database.PostsDatabase;
 import com.asadmshah.hnclone.database.SessionsDatabase;
 import com.asadmshah.hnclone.errors.SessionsServiceErrors;
 import com.asadmshah.hnclone.models.Post;
+import com.asadmshah.hnclone.models.PostScore;
 import com.asadmshah.hnclone.models.RequestSession;
 import com.asadmshah.hnclone.models.SessionToken;
+import com.asadmshah.hnclone.pubsub.PubSub;
 import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.endpoints.PostsServiceEndpoint;
 import com.asadmshah.hnclone.services.*;
@@ -23,8 +25,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +45,7 @@ public class PostsServiceClientImplTest {
     @Mock private ServerComponent component;
     @Mock private SessionStorage sessionStorage;
     @Mock private BlockedSessionsCache blockedSessionsCache;
+    @Mock private PubSub pubSub;
 
     private BaseClient baseClient;
     private SessionsServiceClient sessionsClient;
@@ -51,6 +56,7 @@ public class PostsServiceClientImplTest {
         when(component.postsDatabase()).thenReturn(postsDatabase);
         when(component.sessionManager()).thenReturn(sessionManager);
         when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
+        when(component.pubSub()).thenReturn(pubSub);
 
         baseClient = new TestBaseClientImpl(PostsServiceEndpoint.create(component));
         sessionsClient = new SessionsServiceClientImpl(sessionStorage, baseClient);
@@ -610,6 +616,22 @@ public class PostsServiceClientImplTest {
         postsServiceClient.vote(request).blockingGet();
 
         verify(postsDatabase).removeScore(requestSession.getId(), request.getId());
+    }
+
+    @Test
+    public void postVoteStream_shouldComplete() throws Exception {
+        List<PostScore> scores = new ArrayList<>(2);
+        for (int i = 0; i < 10; i++) {
+            scores.add(PostScore.newBuilder().setId(i).build());
+        }
+
+        List<PostScore> expScores = scores.subList(0, 5);
+
+        when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).delay(16, TimeUnit.MILLISECONDS));
+
+        List<PostScore> resScores = Lists.newArrayList(postsServiceClient.voteStream().take(5).blockingIterable());
+
+        assertThat(resScores).containsExactlyElementsIn(expScores);
     }
 
 }

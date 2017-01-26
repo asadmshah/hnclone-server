@@ -1,6 +1,7 @@
 package com.asadmshah.hnclone.client
 
 import com.asadmshah.hnclone.models.Post
+import com.asadmshah.hnclone.models.PostScore
 import com.asadmshah.hnclone.services.*
 import io.grpc.*
 import io.grpc.stub.MetadataUtils
@@ -166,6 +167,47 @@ internal class PostsServiceClientImpl(private val sessions: SessionStorage,
                     }
                     function(stub)
                 }
+    }
+
+    override fun voteStream(): Flowable<PostScore> {
+        return Flowable
+                .defer { justVoteStream() }
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun justVoteStream(): Flowable<PostScore> {
+        return Flowable
+                .create<PostScore>({ subscriber ->
+                    val call = baseClient.getChannel().newCall(PostsServiceGrpc.METHOD_POST_SCORE_CHANGE_STREAM, CallOptions.DEFAULT)
+
+                    subscriber.setCancellable { call.cancel("", null) }
+
+                    call.start(object : ClientCall.Listener<PostScore>() {
+                        override fun onMessage(message: PostScore) {
+                            if (!subscriber.isCancelled) {
+                                subscriber.onNext(message)
+                                call.request(1)
+                            }
+                        }
+
+                        override fun onClose(status: Status, trailers: Metadata) {
+                            if (!subscriber.isCancelled) {
+                                if (!status.isOk) {
+                                    subscriber.onError(StatusRuntimeException(status, trailers))
+                                } else {
+                                    subscriber.onComplete()
+                                }
+                            }
+                        }
+
+                        override fun onReady() {
+                            call.sendMessage(PostScoreChangeRequest.getDefaultInstance())
+                            call.halfClose()
+                            call.request(1)
+                        }
+                    }, Metadata())
+
+                }, BackpressureStrategy.LATEST)
     }
 
 }

@@ -1,6 +1,7 @@
 package com.asadmshah.hnclone.client
 
 import com.asadmshah.hnclone.models.Post
+import com.asadmshah.hnclone.models.PostScore
 import com.asadmshah.hnclone.services.*
 import io.reactivex.Flowable
 import io.reactivex.Single
@@ -26,5 +27,7 @@ interface PostsServiceClient {
     fun vote(request: PostVoteDecrementRequest): Single<PostScoreResponse>
 
     fun vote(request: PostVoteRemoveRequest): Single<PostScoreResponse>
+
+    fun voteStream(): Flowable<PostScore>
 
 }
