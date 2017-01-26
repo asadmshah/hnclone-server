@@ -421,8 +421,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     }
 
     override fun postScoreChangeStream(request: PostScoreChangeRequest, responseObserver: StreamObserver<PostScore>) {
-        pubSub.subPostScore()
-                .subscribe(object : Subscriber<PostScore> {
+        var flowable = pubSub.subPostScore()
+        if (request.id > 0) {
+            flowable = flowable.filter { it.id == request.id }
+        }
+
+        flowable.subscribe(object : Subscriber<PostScore> {
 
                     private var s: Subscription? = null
 
@@ -457,4 +461,5 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
                     }
                 })
     }
+
 }

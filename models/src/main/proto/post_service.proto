@@ -73,5 +73,5 @@ message PostReadListFromUserRequest {
 }
 
 message PostScoreChangeRequest {
-
+    int32       id              = 1;
 }

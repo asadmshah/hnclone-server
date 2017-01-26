@@ -1484,7 +1484,7 @@ public class PostsServiceEndpointTest {
 
             @Override
             public void onClose(Status status, Metadata trailers) {
-//                super.onClose(status, trailers);
+
             }
         }, new Metadata());
 
@@ -1493,6 +1493,51 @@ public class PostsServiceEndpointTest {
         call.cancel("Cancel", null);
 
         assertThat(resScores).containsExactlyElementsIn(expScores);
+    }
+
+    @Test
+    public void postScoreChangeStreamFiltered_shouldComplete() throws Exception {
+        List<PostScore> scores = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            scores.add(PostScore.newBuilder().setId(i).build());
+        }
+
+        PostScore expScore = scores.get(5);
+
+        when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).delay(110, TimeUnit.MILLISECONDS));
+
+        CountDownLatch counter = new CountDownLatch(1);
+
+        List<PostScore> resScores = new ArrayList<>();
+
+        final ClientCall<PostScoreChangeRequest, PostScore> call = inProcessChannel.newCall(PostsServiceGrpc.METHOD_POST_SCORE_CHANGE_STREAM, CallOptions.DEFAULT);
+        call.start(new ClientCall.Listener<PostScore>() {
+            @Override
+            public void onMessage(PostScore message) {
+                resScores.add(message);
+                counter.countDown();
+                call.request(1);
+            }
+
+            @Override
+            public void onReady() {
+                call.sendMessage(PostScoreChangeRequest.newBuilder().setId(expScore.getId()).build());
+                call.halfClose();
+                call.request(1);
+            }
+
+            @Override
+            public void onClose(Status status, Metadata trailers) {
+
+            }
+        }, new Metadata());
+
+        counter.await();
+
+        call.cancel("Cancel", null);
+
+        assertThat(resScores).hasSize(1);
+        assertThat(resScores.get(0)).isEqualTo(expScore);
     }
 
 }
