@@ -57,7 +57,7 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
             return
         }
 
-        val password = if (request.username.isNullOrBlank()) null else request.password.trim().escape()
+        val password = if (request.password.isNullOrBlank()) null else request.password.trim().escape()
         if (password == null || password.isBlank()) {
             responseObserver.onError(UsersServiceErrors.PASSWORD_INSECURE_EXCEPTION)
             return
