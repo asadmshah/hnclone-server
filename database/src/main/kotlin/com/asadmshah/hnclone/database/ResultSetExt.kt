@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.database
 
+import com.asadmshah.hnclone.models.Comment
 import com.asadmshah.hnclone.models.Post
 import com.asadmshah.hnclone.models.RefreshSession
 import com.asadmshah.hnclone.models.User
@@ -37,6 +38,22 @@ internal fun ResultSet.getPost(): Post {
             .setUserId(getInt(7))
             .setUserName(getString(8))
             .setUpvoted(getInt(9))
+            .build()
+}
+
+internal fun ResultSet.getComment(): Comment {
+    return Comment
+            .newBuilder()
+            .setId(getInt(1))
+            .setTimestamp(getTimestamp(2).toLocalDateTime().toEpochSecond(ZoneOffset.UTC))
+            .setText(getString(3))
+            .setScore(getInt(4))
+            .setUserId(getInt(5))
+            .setUserName(getString(6))
+            .setPostId(getInt(7))
+            .setParentId(getInt(8))
+            .setDepth(getInt(9))
+            .setVoted(getInt(10))
             .build()
 }
 

@@ -26,6 +26,7 @@ class BaseDatabaseTest {
             statement.execute("TRUNCATE sessions RESTART IDENTITY CASCADE;");
             statement.execute("TRUNCATE users RESTART IDENTITY CASCADE;");
             statement.execute("TRUNCATE posts RESTART IDENTITY CASCADE;");
+            statement.execute("TRUNCATE comments RESTART IDENTITY CASCADE;");
         } finally {
             if (statement != null) {
                 statement.close();

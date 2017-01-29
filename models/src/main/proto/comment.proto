@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package hnclone;
+
+option java_multiple_files = true;
+option java_package = "com.asadmshah.hnclone.models";
+option optimize_for = LITE_RUNTIME;
+
+message Comment {
+    uint32      id              = 1;
+    uint64      timestamp       = 2;
+    string      text            = 3;
+    int32       score           = 4;
+    uint32      user_id         = 5;
+    string      user_name       = 6;
+    uint32      post_id         = 7;
+    uint32      parent_id       = 8;
+    uint32      depth           = 9;
+    int32       voted           = 10;
+}

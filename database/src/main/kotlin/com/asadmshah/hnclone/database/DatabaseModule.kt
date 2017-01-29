@@ -46,4 +46,10 @@ class DatabaseModule {
         return sessionsDatabase
     }
 
+    @Provides
+    @Singleton
+    internal fun providesComments(commentsDatabase: CommentsDatabaseImpl): CommentsDatabase {
+        return commentsDatabase
+    }
+
 }
