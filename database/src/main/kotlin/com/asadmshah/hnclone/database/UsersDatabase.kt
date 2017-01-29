@@ -15,6 +15,4 @@ interface UsersDatabase {
     fun updateAbout(id: Int, about: String = ""): String?
 
     fun updatePassword(id: Int, password: String): Boolean?
-
-    fun delete(id: Int): Boolean?
 }

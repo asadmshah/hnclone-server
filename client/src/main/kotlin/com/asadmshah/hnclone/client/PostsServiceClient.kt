@@ -10,8 +10,6 @@ interface PostsServiceClient {
 
     fun create(request: PostCreateRequest): Single<Post>
 
-    fun delete(request: PostDeleteRequest): Single<Int>
-
     fun read(request: PostReadRequest): Single<Post>
 
     fun readNew(request: PostReadListRequest): Flowable<Post>

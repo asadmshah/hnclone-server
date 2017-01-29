@@ -32,29 +32,6 @@ internal class PostsServiceClientImpl(private val sessions: SessionStorage,
                 }
     }
 
-    override fun delete(request: PostDeleteRequest): Single<Int> {
-        return sessionsClient
-                .refresh()
-                .andThen(justDelete(request))
-                .onStatusRuntimeErrorResumeNext()
-    }
-
-    internal fun justDelete(request: PostDeleteRequest): Single<Int> {
-        return Single
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessions.getRequestKey()?.let {
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(PostsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
-                    val response = stub.delete(request)
-
-                    // TODO: Handle No Deleted Case with response.deleted.
-
-                    response.id
-                }
-    }
-
     override fun read(request: PostReadRequest): Single<Post> {
         return sessionsClient
                 .refresh(force = false, nullable = true)

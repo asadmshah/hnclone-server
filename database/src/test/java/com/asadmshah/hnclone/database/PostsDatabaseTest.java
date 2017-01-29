@@ -103,13 +103,6 @@ public class PostsDatabaseTest extends BaseDatabaseTest {
         Post post = pdb.read(0, posts.get(0).getId());
         assertThat(post).isNotNull();
         assertThat(post.getId()).isEqualTo(posts.get(0).getId());
-
-        assertThat(pdb.delete(1)).isTrue();
-        assertThat(pdb.delete(2)).isTrue();
-        assertThat(pdb.delete(3)).isTrue();
-        assertThat(pdb.delete(4)).isTrue();
-        assertThat(pdb.delete(5)).isTrue();
-        assertThat(pdb.delete(5)).isFalse();
     }
 
 }

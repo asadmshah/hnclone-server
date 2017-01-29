@@ -4,7 +4,6 @@ import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.PostsDatabase;
 import com.asadmshah.hnclone.database.SessionsDatabase;
-import com.asadmshah.hnclone.errors.SessionsServiceErrors;
 import com.asadmshah.hnclone.models.Post;
 import com.asadmshah.hnclone.models.PostScore;
 import com.asadmshah.hnclone.models.RequestSession;
@@ -101,47 +100,6 @@ public class PostsServiceClientImplTest {
         assertThat(post.getTitle()).isEqualTo(request.getTitle());
         assertThat(post.getText()).isEqualTo(request.getText());
         assertThat(post.getUrl()).isEqualTo(request.getUrl());
-    }
-
-    @Test
-    public void delete_shouldComplete() throws Exception {
-        RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
-        SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
-
-        when(sessionStorage.getRequestKey()).thenReturn(requestT);
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.newBuilder().setId(20).setUserId(10).build());
-        when(postsDatabase.delete(anyInt())).thenReturn(true);
-
-        PostDeleteRequest request = PostDeleteRequest
-                .newBuilder()
-                .setId(20)
-                .build();
-
-        int response = postsServiceClient.delete(request).blockingGet();
-
-        assertThat(response).isEqualTo(20);
-
-        verify(postsDatabase).read(10, 20);
-        verify(postsDatabase).delete(20);
-    }
-
-    @Test
-    public void delete_shouldThrowInvalidTokenException() throws Exception {
-        PostDeleteRequest request = PostDeleteRequest
-                .newBuilder()
-                .setId(20)
-                .build();
-
-        StatusRuntimeException exception = null;
-        try {
-            postsServiceClient.delete(request).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception.getStatus()).isEqualTo(SessionsServiceErrors.INVALID_TOKEN);
     }
 
     @Test

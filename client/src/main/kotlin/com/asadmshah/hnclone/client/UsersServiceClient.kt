@@ -16,7 +16,4 @@ interface UsersServiceClient {
     fun update(request: UserUpdateAboutRequest): Single<String>
 
     fun update(request: UserUpdatePasswordRequest): Completable
-
-    fun delete(): Completable
-
 }

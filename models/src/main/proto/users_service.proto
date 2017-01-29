@@ -14,7 +14,6 @@ service UsersService {
     rpc ReadUsingName (UserReadUsingNameRequest) returns (User);
     rpc UpdateAbout (UserUpdateAboutRequest) returns (UserUpdateAboutResponse);
     rpc UpdatePassword (UserUpdatePasswordRequest) returns (UserUpdatePasswordResponse);
-    rpc Delete (UserDeleteRequest) returns (UserDeleteResponse);
 }
 
 message UserCreateRequest {
@@ -45,12 +44,4 @@ message UserUpdatePasswordRequest {
 
 message UserUpdatePasswordResponse {
 
-}
-
-message UserDeleteRequest {
-
-}
-
-message UserDeleteResponse {
-    bool deleted = 1;
 }

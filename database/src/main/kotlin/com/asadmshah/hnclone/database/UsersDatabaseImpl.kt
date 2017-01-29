@@ -60,11 +60,6 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
                 .executeSingle("SELECT * FROM users_update_password($id, '$hash');", ResultSet::getBoolean)
     }
 
-    override fun delete(id: Int): Boolean? {
-        return dataSource
-                .executeSingle("SELECT * FROM users_delete($id);", ResultSet::getBoolean)
-    }
-
     internal fun hashString(i: String): String {
         return BCrypt.hashpw(i, BCrypt.gensalt(LOG_ROUNDS))
     }

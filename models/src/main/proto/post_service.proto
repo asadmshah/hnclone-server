@@ -11,7 +11,6 @@ option optimize_for = LITE_RUNTIME;
 
 service PostsService {
     rpc Create (PostCreateRequest) returns (Post);
-    rpc Delete (PostDeleteRequest) returns (PostDeleteResponse);
     rpc Read (PostReadRequest) returns (Post);
     rpc ReadNewStream (PostReadListRequest) returns (stream Post);
     rpc ReadHotStream (PostReadListRequest) returns (stream Post);
@@ -46,15 +45,6 @@ message PostScoreResponse {
     uint32      id              = 1;
     int32       score           = 2;
     int32       voted           = 3;
-}
-
-message PostDeleteRequest {
-    uint32      id              = 1;
-}
-
-message PostDeleteResponse {
-    uint32      id              = 1;
-    bool        deleted         = 2;
 }
 
 message PostReadRequest {

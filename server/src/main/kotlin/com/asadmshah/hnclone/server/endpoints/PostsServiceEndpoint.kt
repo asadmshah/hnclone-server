@@ -102,43 +102,6 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         responseObserver.onCompleted()
     }
 
-    override fun delete(request: PostDeleteRequest, responseObserver: StreamObserver<PostDeleteResponse>) {
-        val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
-        if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
-            return
-        }
-
-        val post: Post?
-        try {
-            post = postsDatabase.read(session.id, request.id)
-        } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
-            return
-        }
-
-        if (post == null) {
-            responseObserver.onError(PostServiceErrors.NOT_FOUND_EXCEPTION)
-            return
-        }
-
-        if (post.userId != session.id) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHORIZED_EXCEPTION)
-            return
-        }
-
-        val deleted: Boolean
-        try {
-            deleted = postsDatabase.delete(post.id)
-        } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
-            return
-        }
-
-        responseObserver.onNext(PostDeleteResponse.newBuilder().setId(post.id).setDeleted(deleted).build())
-        responseObserver.onCompleted()
-    }
-
     override fun read(request: PostReadRequest, responseObserver: StreamObserver<Post>) {
         val userId = SessionInterceptor.KEY_SESSION.get()?.id ?: -1
 

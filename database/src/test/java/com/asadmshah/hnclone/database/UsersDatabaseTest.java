@@ -56,9 +56,5 @@ public class UsersDatabaseTest extends BaseDatabaseTest {
         assertThat(udb.updatePassword(1, "Updated Password 1")).isTrue();
         assertThat(udb.read("Username 1", "Updated Password 1")).isNotNull();
         assertThat(sdb.read(1).toList().blockingGet()).isEmpty();
-
-        assertThat(udb.delete(1)).isTrue();
-        assertThat(udb.read(1)).isNull();
-        assertThat(udb.updateAbout(1, "")).isNull();
     }
 }

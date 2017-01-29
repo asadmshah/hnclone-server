@@ -268,21 +268,6 @@ public class UsersServiceClientImplTest {
     }
 
     @Test
-    public void delete_shouldComplete() throws Exception {
-        RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
-        SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
-
-        when(usersDatabase.delete(anyInt())).thenReturn(true);
-        when(sessions.getRequestKey()).thenReturn(requestT);
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
-
-        usersClient.delete().blockingAwait();
-
-        verify(usersDatabase).delete(requestS.getId());
-        verify(sessions).clear();
-    }
-
-    @Test
     public void updatePassword_shouldComplete() throws Exception {
         RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
         SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();

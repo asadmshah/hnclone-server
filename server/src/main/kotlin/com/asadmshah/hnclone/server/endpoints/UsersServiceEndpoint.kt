@@ -193,33 +193,4 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         responseObserver.onCompleted()
     }
 
-    override fun delete(request: UserDeleteRequest, responseObserver: StreamObserver<UserDeleteResponse>) {
-        val session = SessionInterceptor.KEY_SESSION.get(Context.current())
-        if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
-            return
-        }
-
-        var response: UserDeleteResponse? = null
-        try {
-            val d = usersDatabase.delete(session.id)
-            if (d != null) {
-                response = UserDeleteResponse.newBuilder().setDeleted(d).build()
-            }
-        } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
-            return
-        }
-
-        if (response == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
-            return
-        }
-
-        blockedSessionsCache.put(session.id)
-
-        responseObserver.onNext(response)
-        responseObserver.onCompleted()
-    }
-
 }

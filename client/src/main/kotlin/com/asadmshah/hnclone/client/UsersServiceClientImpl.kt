@@ -81,25 +81,4 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                 }
     }
 
-    override fun delete(): Completable {
-        return sessionsClient
-                .refresh()
-                .andThen(justDelete())
-                .onStatusRuntimeErrorResumeNext()
-    }
-
-    internal fun justDelete(): Completable {
-        return Completable
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessionsStore.getRequestKey()?.let {
-                        md.put(AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
-                    stub.delete(UserDeleteRequest.getDefaultInstance()).deleted
-
-                    sessionsStore.clear()
-                }
-    }
-
 }

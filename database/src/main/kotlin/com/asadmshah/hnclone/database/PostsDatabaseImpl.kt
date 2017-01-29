@@ -59,9 +59,4 @@ constructor(private val dataSource: DataSource): PostsDatabase {
         return dataSource
                 .executeSingle("SELECT * FROM post_votes_read_score($viewerId, $postId);", ResultSet::getInt)
     }
-
-    override fun delete(postId: Int): Boolean {
-        return dataSource
-                .executeSingle("SELECT * FROM posts_delete($postId);", ResultSet::getBoolean) ?: false
-    }
 }
