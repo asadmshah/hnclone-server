@@ -23,47 +23,51 @@ service CommentsService {
 }
 
 message CommentCreateRequest {
-    uint32          post_id         = 1;
-    uint32          comment_id      = 2;
-    string          text            = 3;
+    uint32 post_id = 1;
+    uint32 comment_id = 2;
+    string text = 3;
 }
 
 message CommentReadRequest {
-    uint32          post_id         = 1;
-    uint32          comment_id      = 2;
+    uint32 post_id = 1;
+    uint32 comment_id = 2;
 }
 
 message CommentReadListFromPostRequest {
-    uint32          post_id         = 1;
+    uint32 post_id = 1;
 }
 
 message CommentReadListFromCommentRequest {
-    uint32          post_id         = 1;
-    uint32          comment_id      = 2;
+    uint32 post_id = 1;
+    uint32 comment_id = 2;
 }
 
 message CommentVoteIncrementRequest {
-    uint32          id      = 1;
+    uint32 post_id = 1;
+    uint32 comment_id = 2;
 }
 
 message CommentVoteDecrementRequest {
-    uint32          id      = 1;
+    uint32 post_id = 1;
+    uint32 comment_id = 2;
 }
 
 message CommentVoteRemoveRequest {
-    uint32          id      = 1;
+    uint32 post_id = 1;
+    uint32 comment_id = 2;
 }
 
 message CommentScoreResponse {
-    uint32          id      = 1;
-    int32          score   = 2;
-    int32           voted = 3;
+    uint32 post_id = 1;
+    uint32 comment_id = 2;
+    int32 score = 3;
+    int32 voted = 4;
 }
 
 message CommentStreamRequest {
-    uint32      post_id     = 1;
+    uint32 post_id = 1;
 }
 
 message CommentScoreStreamRequest {
-    uint32      post_id     = 1;
+    uint32 post_id = 1;
 }
