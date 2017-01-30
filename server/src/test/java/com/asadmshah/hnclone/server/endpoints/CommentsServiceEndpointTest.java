@@ -290,6 +290,29 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
+    public void create_shouldPublishComment() throws Exception {
+        when(commentsDatabase.create(anyInt(), anyInt(), anyString())).thenReturn(Comment.getDefaultInstance());
+
+        RequestSession session = RequestSession.getDefaultInstance();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        CommentCreateRequest request = CommentCreateRequest
+                .newBuilder()
+                .setText("Text")
+                .build();
+
+        inProcessStub.create(request);
+
+        ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
+        verify(pubSub).pubComment(commentCaptor.capture());
+        assertThat(commentCaptor.getValue()).isEqualTo(Comment.getDefaultInstance());
+    }
+
+    @Test
     public void read_shouldThrowSQLException() throws Exception {
         when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenThrow(SQLException.class);
 
@@ -658,6 +681,38 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
+    public void voteIncrement_shouldPublishCommentScore() throws Exception {
+        RequestSession session = RequestSession.newBuilder().setId(100).build();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
+        when(commentsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(10);
+
+        CommentVoteIncrementRequest request = CommentVoteIncrementRequest
+                .newBuilder()
+                .setPostId(10)
+                .setCommentId(20)
+                .build();
+
+        inProcessStub.voteIncrement(request);
+
+        CommentScore expPublishedScore = CommentScore
+                .newBuilder()
+                .setPostId(10)
+                .setCommentId(20)
+                .setScore(10)
+                .build();
+
+        ArgumentCaptor<CommentScore> captor = ArgumentCaptor.forClass(CommentScore.class);
+        verify(pubSub).pubCommentScore(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(expPublishedScore);
+    }
+
+    @Test
     public void voteDecrement_shouldThrowUnauthenticatedException() throws Exception {
         StatusRuntimeException exception = null;
         try {
@@ -786,6 +841,38 @@ public class CommentsServiceEndpointTest {
         assertThat(response.getVoted()).isEqualTo(-1);
 
         verify(commentsDatabase).decrementScore(session.getId(), request.getCommentId());
+    }
+
+    @Test
+    public void voteDecrement_shouldPublishCommentScore() throws Exception {
+        RequestSession session = RequestSession.newBuilder().setId(100).build();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
+        when(commentsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(10);
+
+        CommentVoteDecrementRequest request = CommentVoteDecrementRequest
+                .newBuilder()
+                .setPostId(10)
+                .setCommentId(20)
+                .build();
+
+        inProcessStub.voteDecrement(request);
+
+        CommentScore expPublishedScore = CommentScore
+                .newBuilder()
+                .setPostId(10)
+                .setCommentId(20)
+                .setScore(10)
+                .build();
+
+        ArgumentCaptor<CommentScore> captor = ArgumentCaptor.forClass(CommentScore.class);
+        verify(pubSub).pubCommentScore(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(expPublishedScore);
     }
 
     @Test
@@ -983,5 +1070,37 @@ public class CommentsServiceEndpointTest {
         List<CommentScore> response = Lists.newArrayList(inProcessStub.commentScoreStream(request));
 
         assertThat(response).containsExactly(cs1, cs3, cs5).inOrder();
+    }
+
+    @Test
+    public void voteRemove_shouldPublishCommentScore() throws Exception {
+        RequestSession session = RequestSession.newBuilder().setId(100).build();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
+        when(commentsDatabase.removeScore(anyInt(), anyInt())).thenReturn(10);
+
+        CommentVoteRemoveRequest request = CommentVoteRemoveRequest
+                .newBuilder()
+                .setPostId(10)
+                .setCommentId(20)
+                .build();
+
+        inProcessStub.voteRemove(request);
+
+        CommentScore expPublishedScore = CommentScore
+                .newBuilder()
+                .setPostId(10)
+                .setCommentId(20)
+                .setScore(10)
+                .build();
+
+        ArgumentCaptor<CommentScore> captor = ArgumentCaptor.forClass(CommentScore.class);
+        verify(pubSub).pubCommentScore(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(expPublishedScore);
     }
 }

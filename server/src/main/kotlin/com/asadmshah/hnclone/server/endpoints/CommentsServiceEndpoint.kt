@@ -70,6 +70,8 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         responseObserver.onNext(comment)
         responseObserver.onCompleted()
+
+        pubsub.pubComment(comment)
     }
 
     override fun read(request: CommentReadRequest, responseObserver: StreamObserver<Comment>) {
@@ -235,6 +237,15 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
+
+        val commentScore = CommentScore
+                .newBuilder()
+                .setPostId(response.postId)
+                .setCommentId(response.commentId)
+                .setScore(response.score)
+                .build()
+
+        pubsub.pubCommentScore(commentScore)
     }
 
     override fun voteDecrement(request: CommentVoteDecrementRequest, responseObserver: StreamObserver<CommentScoreResponse>) {
@@ -280,6 +291,15 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
+
+        val commentScore = CommentScore
+                .newBuilder()
+                .setPostId(response.postId)
+                .setCommentId(response.commentId)
+                .setScore(response.score)
+                .build()
+
+        pubsub.pubCommentScore(commentScore)
     }
 
     override fun voteRemove(request: CommentVoteRemoveRequest, responseObserver: StreamObserver<CommentScoreResponse>) {
@@ -325,6 +345,15 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
+
+        val commentScore = CommentScore
+                .newBuilder()
+                .setPostId(response.postId)
+                .setCommentId(response.commentId)
+                .setScore(response.score)
+                .build()
+
+        pubsub.pubCommentScore(commentScore)
     }
 
     override fun commentStream(request: CommentStreamRequest, responseObserver: StreamObserver<Comment>) {
