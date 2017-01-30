@@ -68,9 +68,6 @@ public class PostsDatabaseTest extends BaseDatabaseTest {
         assertThat(pdb.decrementScore(user1.getId(), posts.get(0).getId())).isEqualTo(0);
         assertThat(pdb.removeScore(user1.getId(), posts.get(0).getId())).isEqualTo(1);
 
-        assertThat(pdb.readScore(user1.getId(), posts.get(0).getId())).isEqualTo(0);
-        assertThat(pdb.readScore(user2.getId(), posts.get(0).getId())).isEqualTo(1);
-
         pdb.incrementScore(user1.getId(), posts.get(1).getId());
         pdb.incrementScore(user2.getId(), posts.get(1).getId());
 

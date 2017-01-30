@@ -12,15 +12,30 @@ internal class UsersDatabaseImpl
 constructor(private val dataSource: DataSource) : UsersDatabase {
 
     companion object {
-        private val LOG_ROUNDS = 14
+        // language=PostgreSQL
+        private const val SQL_CREATE = "SELECT * FROM users_create(?, ?, ?);"
+        // language=PostgreSQL
+        private const val SQL_READ_ID = "SELECT * FROM users_read_id(?);"
+        // language=PostgreSQL
+        private const val SQL_READ_USERNAME = "SELECT * FROM users_read_username(?);"
+        // language=PostgreSQL
+        private const val SQL_READ_PASSWORD = "SELECT * FROM users_read_password(?);"
+        // language=PostgreSQL
+        private const val SQL_UPDATE_ABOUT = "SELECT * FROM users_update_about(?, ?);"
+        // language=PostgreSQL
+        private const val SQL_UPDATE_PASSWORD = "SELECT * FROM users_update_password(?, ?);"
+
+        internal val LOG_ROUNDS = 4
     }
 
     override fun create(username: String, password: String, about: String): User? {
-        val hash = hashString(password)
-
         try {
             return dataSource
-                    .executeSingle("SELECT * FROM users_create('$username', '$hash', '$about');", ResultSet::getUser)
+                    .executeSingle(SQL_CREATE, {
+                        it.setString(1, username)
+                        it.setString(2, hashString(password))
+                        it.setString(3, about)
+                    }, ResultSet::getUser)
         } catch (e: SQLException) {
             when (e.sqlState) {
                 "23505" -> throw UserExistsException()
@@ -31,33 +46,41 @@ constructor(private val dataSource: DataSource) : UsersDatabase {
 
     override fun read(id: Int): User? {
         return dataSource
-                .executeSingle("SELECT * FROM users_read($id);", ResultSet::getUser)
+                .executeSingle(SQL_READ_ID, {
+                    it.setInt(1, id)
+                }, ResultSet::getUser)
     }
 
     override fun read(username: String): User? {
         return dataSource
-                .executeSingle("SELECT * FROM users_read('$username');", ResultSet::getUser)
+                .executeSingle(SQL_READ_USERNAME, {
+                    it.setString(1, username)
+                }, ResultSet::getUser)
     }
 
     override fun read(username: String, password: String): User? {
-        val good: Boolean? = dataSource
-                .executeSingle("SELECT * FROM users_read_password('$username');", {
-                    BCrypt.checkpw(password, it.getString(1))
-                })
+        val hash = dataSource
+                .executeSingle(SQL_READ_PASSWORD, {
+                    it.setString(1, username)
+                }, ResultSet::getString) ?: ""
 
-        return if (good ?: false) read(username) else null
+        return if (BCrypt.checkpw(password, hash)) read(username) else null
     }
 
     override fun updateAbout(id: Int, about: String): String? {
         return dataSource
-                .executeSingle("SELECT * FROM users_update_about($id, '$about');", ResultSet::getString)
+                .executeSingle(SQL_UPDATE_ABOUT, {
+                    it.setInt(1, id)
+                    it.setString(2, about)
+                }, ResultSet::getString)
     }
 
     override fun updatePassword(id: Int, password: String): Boolean? {
-        val hash = hashString(password)
-
         return dataSource
-                .executeSingle("SELECT * FROM users_update_password($id, '$hash');", ResultSet::getBoolean)
+                .executeSingle(SQL_UPDATE_PASSWORD, {
+                    it.setInt(1, id)
+                    it.setString(2, hashString(password))
+                }, ResultSet::getBoolean)
     }
 
     internal fun hashString(i: String): String {

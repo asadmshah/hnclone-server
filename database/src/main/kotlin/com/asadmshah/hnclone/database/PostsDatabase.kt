@@ -22,6 +22,4 @@ interface PostsDatabase {
     fun decrementScore(viewerId: Int, postId: Int): Int?
 
     fun removeScore(viewerId: Int, postId: Int): Int?
-
-    fun readScore(viewerId: Int, postId: Int): Int?
 }
