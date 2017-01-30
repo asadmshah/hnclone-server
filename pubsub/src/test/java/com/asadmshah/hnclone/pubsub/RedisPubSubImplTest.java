@@ -1,5 +1,7 @@
 package com.asadmshah.hnclone.pubsub;
 
+import com.asadmshah.hnclone.models.Comment;
+import com.asadmshah.hnclone.models.CommentScore;
 import com.asadmshah.hnclone.models.Post;
 import com.asadmshah.hnclone.models.PostScore;
 import io.reactivex.schedulers.Schedulers;
@@ -12,6 +14,8 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -69,6 +73,58 @@ public class RedisPubSubImplTest {
 
         assertThat(results1).containsExactly(post1, post2);
         assertThat(results2).containsExactly(post2);
+    }
+
+    @Test
+    public void pubSubComments_shouldComplete() throws Exception {
+        List<Comment> expComments = new ArrayList<>(10);
+        for (int i = 0; i < 10; i++) {
+            expComments.add(Comment.newBuilder().setId(i+1).build());
+        }
+
+        CountDownLatch counter = new CountDownLatch(10);
+
+        List<Comment> resComments = Collections.synchronizedList(new ArrayList<>(10));
+        pubSub.subComments().subscribeOn(Schedulers.io()).subscribe(comment -> {
+            resComments.add(comment);
+            counter.countDown();
+        });
+
+        Thread.sleep(50);
+
+        for (Comment comment : expComments) {
+            pubSub.pubComment(comment);
+        }
+
+        counter.await(1, TimeUnit.SECONDS);
+
+        assertThat(resComments).containsExactlyElementsIn(expComments).inOrder();
+    }
+
+    @Test
+    public void pubCommentScores_shouldComplete() throws Exception {
+        List<CommentScore> expCommentScores = new ArrayList<>(10);
+        for (int i = 0; i < 10; i++) {
+            expCommentScores.add(CommentScore.newBuilder().setCommentId(i+1).build());
+        }
+
+        CountDownLatch counter = new CountDownLatch(10);
+
+        List<CommentScore> resCommentScores = Collections.synchronizedList(new ArrayList<>(10));
+        pubSub.subCommentScores().subscribeOn(Schedulers.io()).subscribe(commentScore -> {
+            resCommentScores.add(commentScore);
+            counter.countDown();
+        });
+
+        Thread.sleep(50);
+
+        for (CommentScore commentScore : expCommentScores) {
+            pubSub.pubCommentScore(commentScore);
+        }
+
+        counter.await(1, TimeUnit.SECONDS);
+
+        assertThat(resCommentScores).containsExactlyElementsIn(expCommentScores).inOrder();
     }
 
 }

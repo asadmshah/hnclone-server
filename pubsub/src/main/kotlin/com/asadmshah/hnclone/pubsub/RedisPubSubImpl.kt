@@ -1,5 +1,7 @@
 package com.asadmshah.hnclone.pubsub
 
+import com.asadmshah.hnclone.models.Comment
+import com.asadmshah.hnclone.models.CommentScore
 import com.asadmshah.hnclone.models.Post
 import com.asadmshah.hnclone.models.PostScore
 import com.lambdaworks.redis.RedisClient
@@ -23,6 +25,8 @@ constructor(private val configuration: Configuration) : PubSub {
 
     private val publisherPostScore = PublishProcessor.create<PostScore>()
     private val publisherPost = PublishProcessor.create<Post>()
+    private val publisherComments = PublishProcessor.create<Comment>()
+    private val publisherCommentScores = PublishProcessor.create<CommentScore>()
     private val subscriptions = CompositeSubscription()
 
     private var client: RedisClient? = null
@@ -49,6 +53,8 @@ constructor(private val configuration: Configuration) : PubSub {
 
         subscriptions.add(observe(Channels.POST_SCORE, PostScore::parseFrom, publisherPostScore))
         subscriptions.add(observe(Channels.POST, Post::parseFrom, publisherPost))
+        subscriptions.add(observe(Channels.COMMENTS, Comment::parseFrom, publisherComments))
+        subscriptions.add(observe(Channels.COMMENT_SCORES, CommentScore::parseFrom, publisherCommentScores))
     }
 
     override fun stop() {
@@ -100,5 +106,21 @@ constructor(private val configuration: Configuration) : PubSub {
 
     override fun subPost(): Flowable<Post> {
         return publisherPost
+    }
+
+    override fun pubComment(comment: Comment) {
+        commBasic?.publish(Channels.COMMENTS, comment.toByteArray())
+    }
+
+    override fun subComments(): Flowable<Comment> {
+        return publisherComments
+    }
+
+    override fun pubCommentScore(commentScore: CommentScore) {
+        commBasic?.publish(Channels.COMMENT_SCORES, commentScore.toByteArray())
+    }
+
+    override fun subCommentScores(): Flowable<CommentScore> {
+        return publisherCommentScores
     }
 }
