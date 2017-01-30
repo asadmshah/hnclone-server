@@ -57,4 +57,15 @@ public class UsersDatabaseTest extends BaseDatabaseTest {
         assertThat(udb.read("Username 1", "Updated Password 1")).isNotNull();
         assertThat(sdb.read(1).toList().blockingGet()).isEmpty();
     }
+
+    @Test(expected = UserExistsException.class)
+    public void create_shouldThrowDuplicateUserException() throws Exception {
+        UsersDatabase udb = new UsersDatabaseImpl(dataSource);
+
+        User user1 = udb.create("Username 1", "Password 1", "About 1");
+        assertThat(user1).isNotNull();
+
+        udb.create("Username 1", "Password 1", "About");
+    }
+
 }
