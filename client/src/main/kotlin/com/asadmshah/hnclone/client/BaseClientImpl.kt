@@ -36,13 +36,12 @@ internal open class BaseClientImpl internal constructor(private val channel: Man
                     override fun onMessage(message: ResT) {
                         if (!subscriber.isCancelled) {
                             subscriber.onNext(message)
-                            call.request(subscriber.requested().toInt())
                         }
                     }
 
                     override fun onReady() {
                         call.sendMessage(request)
-                        call.request(subscriber.requested().toInt())
+                        call.request(Integer.MAX_VALUE)
                         call.halfClose()
                     }
                 }, md)
