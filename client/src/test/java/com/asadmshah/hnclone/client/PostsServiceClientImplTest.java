@@ -57,7 +57,7 @@ public class PostsServiceClientImplTest {
         when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
         when(component.pubSub()).thenReturn(pubSub);
 
-        baseClient = new TestBaseClientImpl(PostsServiceEndpoint.create(component));
+        baseClient = TestBaseClient.create(PostsServiceEndpoint.create(component));
         sessionsClient = new SessionsServiceClientImpl(sessionStorage, baseClient);
         postsServiceClient = new PostsServiceClientImpl(sessionStorage, baseClient, sessionsClient);
     }

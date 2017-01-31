@@ -50,7 +50,7 @@ public class UsersServiceClientImplTest {
         when(component.usersDatabase()).thenReturn(usersDatabase);
         when(component.blockedSessionsCache()).thenReturn(blockedSessionsCache);
 
-        baseClient = new TestBaseClientImpl(UsersServiceEndpoint.create(component));
+        baseClient = TestBaseClient.create(UsersServiceEndpoint.create(component));
         sessionsClient = new SessionsServiceClientImpl(sessions, baseClient);
         usersClient = new UsersServiceClientImpl(sessions, baseClient, sessionsClient);
     }
