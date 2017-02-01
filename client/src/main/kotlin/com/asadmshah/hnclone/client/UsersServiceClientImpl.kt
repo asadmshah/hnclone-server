@@ -2,7 +2,6 @@ package com.asadmshah.hnclone.client
 
 import com.asadmshah.hnclone.models.User
 import com.asadmshah.hnclone.services.*
-import io.grpc.Metadata
 import io.grpc.stub.MetadataUtils
 import io.reactivex.Completable
 import io.reactivex.Single
@@ -12,11 +11,16 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                        private val base: BaseClient,
                        private val sessionsClient: SessionsServiceClient) : UsersServiceClient {
 
-    companion object {
-        private val AUTHORIZATION_KEY = Metadata.Key.of("authorization-bin", Metadata.BINARY_BYTE_MARSHALLER)
+    override fun create(username: String, password: String, about: String): Single<User> {
+        return create(UserCreateRequest
+                .newBuilder()
+                .setUsername(username)
+                .setPassword(password)
+                .setAbout(about)
+                .build())
     }
 
-    override fun create(request: UserCreateRequest): Single<User> {
+    internal fun create(request: UserCreateRequest): Single<User> {
         return Single
                 .fromCallable {
                     val stub = UsersServiceGrpc.newBlockingStub(base.getChannel())
@@ -25,7 +29,14 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                 .onStatusRuntimeErrorResumeNext()
     }
 
-    override fun read(request: UserReadUsingIDRequest): Single<User> {
+    override fun read(id: Int): Single<User> {
+        return read(UserReadUsingIDRequest
+                .newBuilder()
+                .setId(id)
+                .build())
+    }
+
+    internal fun read(request: UserReadUsingIDRequest): Single<User> {
         return Single
                 .fromCallable {
                     val stub = UsersServiceGrpc.newBlockingStub(base.getChannel())
@@ -34,16 +45,14 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                 .onStatusRuntimeErrorResumeNext()
     }
 
-    override fun read(request: UserReadUsingNameRequest): Single<User> {
-        return Single
-                .fromCallable {
-                    val stub = UsersServiceGrpc.newBlockingStub(base.getChannel())
-                    stub.readUsingName(request)
-                }
-                .onStatusRuntimeErrorResumeNext()
+    override fun updateAbout(about: String): Single<String> {
+        return update(UserUpdateAboutRequest
+                .newBuilder()
+                .setAbout(about)
+                .build())
     }
 
-    override fun update(request: UserUpdateAboutRequest): Single<String> {
+    internal fun update(request: UserUpdateAboutRequest): Single<String> {
         return sessionsClient
                 .refresh(force = false, nullable = false)
                 .andThen(justUpdate(request))
@@ -55,14 +64,21 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                 .fromCallable {
                     val md = io.grpc.Metadata()
                     sessionsStore.getRequestKey()?.let {
-                        md.put(AUTHORIZATION_KEY, it.toByteArray())
+                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
                     }
                     val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
                     stub.updateAbout(request).about
                 }
     }
 
-    override fun update(request: UserUpdatePasswordRequest): Completable {
+    override fun updatePassword(password: String): Completable {
+        return update(UserUpdatePasswordRequest
+                .newBuilder()
+                .setPassword(password)
+                .build())
+    }
+
+    internal fun update(request: UserUpdatePasswordRequest): Completable {
         return sessionsClient
                 .refresh(force = false, nullable = false)
                 .andThen(justUpdate(request))
@@ -74,7 +90,7 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
                 .fromCallable {
                     val md = io.grpc.Metadata()
                     sessionsStore.getRequestKey()?.let {
-                        md.put(AUTHORIZATION_KEY, it.toByteArray())
+                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
                     }
                     val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
                     stub.updatePassword(request)
