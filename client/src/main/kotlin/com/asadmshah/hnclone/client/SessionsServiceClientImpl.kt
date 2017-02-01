@@ -15,10 +15,6 @@ SessionsServiceClientImpl(private val sessions: SessionStorage,
         private val CUTOFF = TimeUnit.SECONDS.toMillis(10)
     }
 
-    override fun refresh(): Completable {
-        return refresh(false)
-    }
-
     override fun refresh(force: Boolean, nullable: Boolean): Completable {
         return Completable
                 .fromCallable {
@@ -45,7 +41,15 @@ SessionsServiceClientImpl(private val sessions: SessionStorage,
                 .onStatusRuntimeErrorResumeNext()
     }
 
-    override fun create(request: SessionCreateRequest): Completable {
+    override fun create(username: String, password: String): Completable {
+        return create(SessionCreateRequest
+                .newBuilder()
+                .setUsername(username)
+                .setPassword(password)
+                .build())
+    }
+
+    internal fun create(request: SessionCreateRequest): Completable {
         return Completable
                 .fromCallable {
                     val stub = SessionsServiceGrpc.newBlockingStub(baseClient.getChannel())

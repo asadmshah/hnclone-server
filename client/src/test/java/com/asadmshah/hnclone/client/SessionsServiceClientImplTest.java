@@ -15,7 +15,6 @@ import com.asadmshah.hnclone.models.SessionToken;
 import com.asadmshah.hnclone.models.User;
 import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.endpoints.SessionsServiceEndpoint;
-import com.asadmshah.hnclone.services.SessionCreateRequest;
 import com.google.protobuf.ByteString;
 import org.junit.After;
 import org.junit.Before;
@@ -66,7 +65,7 @@ public class SessionsServiceClientImplTest {
         when(sessionStorage.getRefreshKey()).thenReturn(SessionToken.getDefaultInstance());
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenThrow(ExpiredTokenException.class);
 
-        sessionsClient.refresh(true, false).blockingAwait();
+        sessionsClient.refresh(false, false).blockingAwait();
     }
 
     @Test(expected = SessionInvalidTokenStatusException.class)
@@ -74,7 +73,7 @@ public class SessionsServiceClientImplTest {
         when(sessionStorage.getRequestKey()).thenReturn(SessionToken.getDefaultInstance());
         when(sessionManager.parseRefreshToken(any(SessionToken.class))).thenThrow(InvalidTokenException.class);
 
-        sessionsClient.refresh().blockingAwait();
+        sessionsClient.refresh(false, false).blockingAwait();
     }
 
     @Test
@@ -86,7 +85,7 @@ public class SessionsServiceClientImplTest {
 
         when(sessionStorage.getRequestKey()).thenReturn(requestT);
 
-        sessionsClient.refresh().blockingAwait();
+        sessionsClient.refresh(false, false).blockingAwait();
 
         verify(sessionStorage, times(1)).getRequestKey();
         verify(sessionManager, times(0)).parseRefreshToken(requestT);
@@ -108,7 +107,7 @@ public class SessionsServiceClientImplTest {
         when(sessionManager.createRequestToken(anyInt())).thenReturn(SessionToken.getDefaultInstance());
         when(sessionsDatabase.read(anyString())).thenReturn(RefreshSession.getDefaultInstance());
 
-        sessionsClient.refresh().blockingAwait();
+        sessionsClient.refresh(false, false).blockingAwait();
 
         verify(sessionStorage, times(1)).getRequestKey();
         verify(sessionStorage, times(1)).getRefreshKey();
@@ -143,7 +142,7 @@ public class SessionsServiceClientImplTest {
     public void create_shouldThrowUserNotFoundException() throws Exception {
         when(usersDatabase.read(anyString(), anyString())).thenReturn(null);
 
-        sessionsClient.create(SessionCreateRequest.getDefaultInstance()).blockingAwait();
+        sessionsClient.create("", "").blockingAwait();
     }
 
     @Test
@@ -155,15 +154,9 @@ public class SessionsServiceClientImplTest {
         when(sessionManager.createRequestToken(anyInt())).thenReturn(req);
         when(sessionManager.createRefreshToken(anyInt())).thenReturn(ref);
 
-        SessionCreateRequest request = SessionCreateRequest
-                .newBuilder()
-                .setUsername("username")
-                .setPassword("password")
-                .build();
+        sessionsClient.create("username", "password").blockingAwait();
 
-        sessionsClient.create(request).blockingAwait();
-
-        verify(usersDatabase).read(request.getUsername(), request.getPassword());
+        verify(usersDatabase).read("username", "password");
         verify(sessionStorage).putRequestKey(req);
         verify(sessionStorage).putRefreshKey(ref);
     }

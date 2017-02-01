@@ -45,7 +45,7 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
 
     override fun update(request: UserUpdateAboutRequest): Single<String> {
         return sessionsClient
-                .refresh()
+                .refresh(force = false, nullable = false)
                 .andThen(justUpdate(request))
                 .onStatusRuntimeErrorResumeNext()
     }
@@ -64,7 +64,7 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
 
     override fun update(request: UserUpdatePasswordRequest): Completable {
         return sessionsClient
-                .refresh()
+                .refresh(force = false, nullable = false)
                 .andThen(justUpdate(request))
                 .onStatusRuntimeErrorResumeNext()
     }

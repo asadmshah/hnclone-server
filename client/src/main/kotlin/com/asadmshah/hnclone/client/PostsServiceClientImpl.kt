@@ -15,7 +15,7 @@ internal class PostsServiceClientImpl(private val sessions: SessionStorage,
 
     override fun create(request: PostCreateRequest): Single<Post> {
         return sessionsClient
-                .refresh()
+                .refresh(force = false, nullable = false)
                 .andThen(justCreate(request))
                 .onStatusRuntimeErrorResumeNext()
     }
