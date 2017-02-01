@@ -3,8 +3,7 @@ package com.asadmshah.hnclone.server.endpoints
 import com.asadmshah.hnclone.common.tools.escape
 import com.asadmshah.hnclone.common.tools.unescape
 import com.asadmshah.hnclone.database.PostsDatabase
-import com.asadmshah.hnclone.errors.CommonServiceErrors
-import com.asadmshah.hnclone.errors.PostServiceErrors
+import com.asadmshah.hnclone.errors.*
 import com.asadmshah.hnclone.models.Post
 import com.asadmshah.hnclone.models.PostScore
 import com.asadmshah.hnclone.models.RequestSession
@@ -45,7 +44,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     override fun create(request: PostCreateRequest, responseObserver: StreamObserver<Post>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
@@ -56,32 +55,32 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         val text = if (request.text.isNullOrBlank()) null else request.text.trim().escape()
 
         if (title == null) {
-            responseObserver.onError(PostServiceErrors.TITLE_REQUIRED_EXCEPTION)
+            responseObserver.onError(PostTitleRequiredStatusException())
             return
         }
 
         if (title.length > 128) {
-            responseObserver.onError(PostServiceErrors.TITLE_TOO_LONG_EXCEPTION)
+            responseObserver.onError(PostTitleTooLongStatusException())
             return
         }
 
         if ((url == null || url.isBlank()) && (text == null || text.isBlank())) {
-            responseObserver.onError(PostServiceErrors.CONTENT_REQUIRED_EXCEPTION)
+            responseObserver.onError(PostContentRequiredStatusException())
             return
         }
 
         if (url != null && !urlValidator.isValid(url.unescape())) {
-            responseObserver.onError(PostServiceErrors.CONTENT_URL_INVALID_EXCEPTION)
+            responseObserver.onError(PostURLInvalidStatusException())
             return
         }
 
         if (url != null && url.length > 128) {
-            responseObserver.onError(PostServiceErrors.CONTENT_URL_UNACCEPTABLE_EXCEPTION)
+            responseObserver.onError(PostURLUnacceptableStatusException())
             return
         }
 
         if (text != null && text.length > 1024) {
-            responseObserver.onError(PostServiceErrors.CONTENT_TEXT_TOO_LONG_EXCEPTION)
+            responseObserver.onError(PostTextTooLongStatusException())
             return
         }
 
@@ -89,12 +88,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             post = postsDatabase.create(id, title, text ?: "", url ?: "")
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (post == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -109,12 +108,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             post = postsDatabase.read(userId, request.id)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (post == null) {
-            responseObserver.onError(PostServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(PostNotFoundStatusException())
             return
         }
 
@@ -143,10 +142,10 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
                     override fun onError(it: Throwable) {
                         when (it) {
                             is SQLException -> {
-                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                                responseObserver.onError(UnknownStatusException())
                             }
                             else -> {
-                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                                responseObserver.onError(UnknownStatusException())
                             }
                         }
                     }
@@ -179,10 +178,10 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
                     override fun onError(it: Throwable) {
                         when (it) {
                             is SQLException -> {
-                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                                responseObserver.onError(UnknownStatusException())
                             }
                             else -> {
-                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                                responseObserver.onError(UnknownStatusException())
                             }
                         }
                     }
@@ -215,10 +214,10 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
                     override fun onError(it: Throwable) {
                         when (it) {
                             is SQLException -> {
-                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                                responseObserver.onError(UnknownStatusException())
                             }
                             else -> {
-                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                                responseObserver.onError(UnknownStatusException())
                             }
                         }
                     }
@@ -251,10 +250,10 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
                     override fun onError(it: Throwable) {
                         when (it) {
                             is SQLException -> {
-                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                                responseObserver.onError(UnknownStatusException())
                             }
                             else -> {
-                                responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                                responseObserver.onError(UnknownStatusException())
                             }
                         }
                     }
@@ -269,7 +268,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     override fun voteDecrement(request: PostVoteDecrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
@@ -277,12 +276,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             post = postsDatabase.read(session.id, request.id)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (post == null) {
-            responseObserver.onError(PostServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(PostNotFoundStatusException())
             return
         }
 
@@ -290,7 +289,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             newScore = postsDatabase.decrementScore(session.id, request.id) ?: 0
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -308,7 +307,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     override fun voteIncrement(request: PostVoteIncrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
@@ -316,12 +315,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             post = postsDatabase.read(session.id, request.id)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (post == null) {
-            responseObserver.onError(PostServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(PostNotFoundStatusException())
             return
         }
 
@@ -329,7 +328,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             newScore = postsDatabase.incrementScore(session.id, request.id) ?: 0
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -347,7 +346,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     override fun voteRemove(request: PostVoteRemoveRequest, responseObserver: StreamObserver<PostScoreResponse>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
@@ -355,12 +354,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             post = postsDatabase.read(session.id, request.id)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (post == null) {
-            responseObserver.onError(PostServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(PostNotFoundStatusException())
             return
         }
 
@@ -368,7 +367,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
         try {
             newScore = postsDatabase.removeScore(session.id, request.id) ?: 0
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -402,7 +401,7 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
                     override fun onError(t: Throwable) {
                         try {
-                            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                            responseObserver.onError(UnknownStatusException())
                         } catch (e: Exception) {
 
                         }

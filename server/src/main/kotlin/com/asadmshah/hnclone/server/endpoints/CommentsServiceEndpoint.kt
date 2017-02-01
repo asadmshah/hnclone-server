@@ -1,8 +1,7 @@
 package com.asadmshah.hnclone.server.endpoints
 
 import com.asadmshah.hnclone.common.tools.escape
-import com.asadmshah.hnclone.errors.CommentsServiceErrors
-import com.asadmshah.hnclone.errors.CommonServiceErrors
+import com.asadmshah.hnclone.errors.*
 import com.asadmshah.hnclone.models.Comment
 import com.asadmshah.hnclone.models.CommentScore
 import com.asadmshah.hnclone.models.RequestSession
@@ -36,18 +35,18 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
     override fun create(request: CommentCreateRequest, responseObserver: StreamObserver<Comment>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
         val text = if (request.text.isNullOrBlank()) null else request.text.trim().escape()
         if (text == null || text.isBlank()) {
-            responseObserver.onError(CommentsServiceErrors.TEXT_REQUIRED_EXCEPTION)
+            responseObserver.onError(CommentTextRequiredStatusException())
             return
         }
 
         if (text.length > 1024) {
-            responseObserver.onError(CommentsServiceErrors.TEXT_TOO_LONG_EXCEPTION)
+            responseObserver.onError(CommentTextTooLongStatusException())
             return
         }
 
@@ -59,12 +58,12 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
                 comment = comments.create(session.id, request.postId, text)
             }
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (comment == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -81,12 +80,12 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             comment = comments.readComment(viewerId, request.postId, request.commentId)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (comment == null) {
-            responseObserver.onError(CommentsServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(CommentNotFoundStatusException())
             return
         }
 
@@ -101,12 +100,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
                 .readComments(viewerId, request.postId)
                 .onBackpressureBuffer()
                 .onErrorResumeNext { it: Throwable ->
-                    val t = when (it) {
-                        is SQLException -> CommonServiceErrors.UNKNOWN_EXCEPTION
-                        else -> CommonServiceErrors.UNKNOWN_EXCEPTION
-                    }
-
-                    Flowable.error<Comment>(t)
+                    Flowable.error<Comment>(UnknownStatusException())
                 }
                 .subscribe(object : Subscriber<Comment> {
 
@@ -151,12 +145,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
                 .readComments(viewerId, request.postId, request.commentId)
                 .onBackpressureBuffer()
                 .onErrorResumeNext { it: Throwable ->
-                    val t = when (it) {
-                        is SQLException -> CommonServiceErrors.UNKNOWN_EXCEPTION
-                        else -> CommonServiceErrors.UNKNOWN_EXCEPTION
-                    }
-
-                    Flowable.error<Comment>(t)
+                    Flowable.error<Comment>(UnknownStatusException())
                 }
                 .subscribe(object : Subscriber<Comment> {
 
@@ -197,7 +186,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
     override fun voteIncrement(request: CommentVoteIncrementRequest, responseObserver: StreamObserver<CommentScoreResponse>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
@@ -205,12 +194,12 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             comment = comments.readComment(-1, request.postId, request.commentId)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (comment == null) {
-            responseObserver.onError(CommentsServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(CommentNotFoundStatusException())
             return
         }
 
@@ -218,12 +207,12 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             score = comments.incrementScore(session.id, request.commentId)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (score == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -251,7 +240,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
     override fun voteDecrement(request: CommentVoteDecrementRequest, responseObserver: StreamObserver<CommentScoreResponse>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
@@ -259,12 +248,12 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             comment = comments.readComment(-1, request.postId, request.commentId)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (comment == null) {
-            responseObserver.onError(CommentsServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(CommentNotFoundStatusException())
             return
         }
 
@@ -272,12 +261,12 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             score = comments.decrementScore(session.id, request.commentId)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (score == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -305,7 +294,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
     override fun voteRemove(request: CommentVoteRemoveRequest, responseObserver: StreamObserver<CommentScoreResponse>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
@@ -313,12 +302,12 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             comment = comments.readComment(-1, request.postId, request.commentId)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (comment == null) {
-            responseObserver.onError(CommentsServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(CommentNotFoundStatusException())
             return
         }
 
@@ -326,12 +315,12 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             score = comments.removeScore(session.id, request.commentId)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (score == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -360,7 +349,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         pubsub.subComments()
                 .onBackpressureDrop()
                 .onErrorResumeNext { it: Throwable ->
-                    Flowable.error(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                    Flowable.error(UnknownStatusException())
                 }
                 .filter { it.postId == request.postId }
                 .observeOn(Schedulers.trampoline())
@@ -404,7 +393,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         pubsub.subCommentScores()
                 .onBackpressureDrop()
                 .onErrorResumeNext { it: Throwable ->
-                    Flowable.error(CommonServiceErrors.UNKNOWN_EXCEPTION)
+                    Flowable.error(UnknownStatusException())
                 }
                 .filter { it.postId == request.postId }
                 .observeOn(Schedulers.trampoline())

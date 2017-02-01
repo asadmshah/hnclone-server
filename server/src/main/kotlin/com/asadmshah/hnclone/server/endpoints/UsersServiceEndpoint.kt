@@ -4,8 +4,7 @@ import com.asadmshah.hnclone.cache.BlockedSessionsCache
 import com.asadmshah.hnclone.common.tools.escape
 import com.asadmshah.hnclone.database.UserExistsException
 import com.asadmshah.hnclone.database.UsersDatabase
-import com.asadmshah.hnclone.errors.CommonServiceErrors
-import com.asadmshah.hnclone.errors.UsersServiceErrors
+import com.asadmshah.hnclone.errors.*
 import com.asadmshah.hnclone.models.User
 import com.asadmshah.hnclone.server.ServerComponent
 import com.asadmshah.hnclone.server.interceptors.SessionInterceptor
@@ -43,29 +42,29 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     override fun create(request: UserCreateRequest, responseObserver: StreamObserver<User>) {
         val username = if (request.username.isNullOrBlank()) null else request.username.trim().escape()
         if (username == null) {
-            responseObserver.onError(UsersServiceErrors.USERNAME_REQUIRED_EXCEPTION)
+            responseObserver.onError(UsernameRequiredStatusException())
             return
         }
 
         if (StringUtils.containsWhitespace(username)) {
-            responseObserver.onError(UsersServiceErrors.USERNAME_INVALID_EXCEPTION)
+            responseObserver.onError(UsernameInvalidStatusException())
             return
         }
 
         if (!patternUsername.matcher(username).matches()) {
-            responseObserver.onError(UsersServiceErrors.USERNAME_INVALID_EXCEPTION)
+            responseObserver.onError(UsernameInvalidStatusException())
             return
         }
 
         val password = if (request.password.isNullOrBlank()) null else request.password.trim().escape()
         if (password == null || password.isBlank()) {
-            responseObserver.onError(UsersServiceErrors.PASSWORD_INSECURE_EXCEPTION)
+            responseObserver.onError(PasswordInsecureStatusException())
             return
         }
 
         val about = if (request.about.isNullOrBlank()) "" else request.about.trim().escape()
         if (about.length > 512) {
-            responseObserver.onError(UsersServiceErrors.ABOUT_TOO_LONG_EXCEPTION)
+            responseObserver.onError(UserAboutTooLongStatusException())
             return
         }
 
@@ -73,15 +72,15 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         try {
             user = usersDatabase.create(username, password, about)
         } catch (e: UserExistsException) {
-            responseObserver.onError(UsersServiceErrors.USERNAME_EXISTS_EXCEPTION)
+            responseObserver.onError(UsernameExistsStatusException())
             return
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (user == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -94,12 +93,12 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         try {
             user = usersDatabase.read(request.id)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (user == null) {
-            responseObserver.onError(UsersServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(UserNotFoundStatusException())
             return
         }
 
@@ -112,12 +111,12 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
         try {
             user = usersDatabase.read(request.username)
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (user == null) {
-            responseObserver.onError(UsersServiceErrors.NOT_FOUND_EXCEPTION)
+            responseObserver.onError(UserNotFoundStatusException())
             return
         }
 
@@ -128,13 +127,13 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     override fun updateAbout(request: UserUpdateAboutRequest, responseObserver: StreamObserver<UserUpdateAboutResponse>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
         val about = if (request.about.isNullOrBlank()) "" else request.about.trim().escape()
         if (about.length > 512) {
-            responseObserver.onError(UsersServiceErrors.ABOUT_TOO_LONG_EXCEPTION)
+            responseObserver.onError(UserAboutTooLongStatusException())
             return
         }
 
@@ -145,12 +144,12 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
                 response = UserUpdateAboutResponse.newBuilder().setAbout(s).build()
             }
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (response == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -161,13 +160,13 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
     override fun updatePassword(request: UserUpdatePasswordRequest, responseObserver: StreamObserver<UserUpdatePasswordResponse>) {
         val session = SessionInterceptor.KEY_SESSION.get(Context.current())
         if (session == null) {
-            responseObserver.onError(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION)
+            responseObserver.onError(UnauthenticatedStatusException())
             return
         }
 
         val password = if (request.password.isNullOrBlank()) null else request.password.trim().escape()
         if (password == null || password.isBlank()) {
-            responseObserver.onError(UsersServiceErrors.PASSWORD_INSECURE_EXCEPTION)
+            responseObserver.onError(PasswordInsecureStatusException())
             return
         }
 
@@ -178,12 +177,12 @@ class UsersServiceEndpoint private constructor(component: ServerComponent) : Use
                 response = UserUpdatePasswordResponse.getDefaultInstance()
             }
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (response == null) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
             return
         }
 

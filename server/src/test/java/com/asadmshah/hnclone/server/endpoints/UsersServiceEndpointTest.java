@@ -4,8 +4,7 @@ import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.UserExistsException;
 import com.asadmshah.hnclone.database.UsersDatabase;
-import com.asadmshah.hnclone.errors.CommonServiceErrors;
-import com.asadmshah.hnclone.errors.UsersServiceErrors;
+import com.asadmshah.hnclone.errors.*;
 import com.asadmshah.hnclone.models.RequestSession;
 import com.asadmshah.hnclone.models.User;
 import com.asadmshah.hnclone.server.ServerComponent;
@@ -92,11 +91,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.USERNAME_REQUIRED.getDescription());
+        assertThat(exception).isInstanceOf(UsernameRequiredStatusException.class);
     }
 
     @Test
@@ -111,11 +110,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.USERNAME_INVALID.getDescription());
+        assertThat(exception).isInstanceOf(UsernameInvalidStatusException.class);
     }
 
     @Test
@@ -130,11 +129,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.USERNAME_INVALID.getDescription());
+        assertThat(exception).isInstanceOf(UsernameInvalidStatusException.class);
     }
 
     @Test
@@ -177,11 +176,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.PASSWORD_INSECURE.getDescription());
+        assertThat(exception).isInstanceOf(PasswordInsecureStatusException.class);
     }
 
     @Test
@@ -197,11 +196,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.ABOUT_TOO_LONG.getDescription());
+        assertThat(exception).isInstanceOf(UserAboutTooLongStatusException.class);
     }
 
     @Test
@@ -218,11 +217,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.USERNAME_EXISTS.getDescription());
+        assertThat(exception).isInstanceOf(UsernameExistsStatusException.class);
     }
 
     @Test
@@ -239,11 +238,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -260,11 +259,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -310,11 +309,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.readUsingID(UserReadUsingIDRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -325,11 +324,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.readUsingID(UserReadUsingIDRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.NOT_FOUND.getDescription());
+        assertThat(exception).isInstanceOf(UserNotFoundStatusException.class);
     }
 
     @Test
@@ -364,11 +363,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.readUsingName(UserReadUsingNameRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -379,11 +378,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.readUsingName(UserReadUsingNameRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.NOT_FOUND.getDescription());
+        assertThat(exception).isInstanceOf(UserNotFoundStatusException.class);
     }
 
     @Test
@@ -416,11 +415,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.updateAbout(UserUpdateAboutRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
+        assertThat(exception).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -436,11 +435,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.updateAbout(UserUpdateAboutRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -456,11 +455,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.updateAbout(UserUpdateAboutRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -480,11 +479,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.updateAbout(req);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(UsersServiceErrors.ABOUT_TOO_LONG.getDescription());
+        assertThat(exception).isInstanceOf(UserAboutTooLongStatusException.class);
     }
 
     @Test
@@ -536,11 +535,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.updatePassword(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
+        assertThat(exception).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -563,11 +562,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.updatePassword(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -590,11 +589,11 @@ public class UsersServiceEndpointTest {
         try {
             inProcessStub.updatePassword(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test

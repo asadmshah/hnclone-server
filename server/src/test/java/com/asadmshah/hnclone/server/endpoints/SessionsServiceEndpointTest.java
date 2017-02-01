@@ -6,8 +6,7 @@ import com.asadmshah.hnclone.common.sessions.InvalidTokenException;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.SessionsDatabase;
 import com.asadmshah.hnclone.database.UsersDatabase;
-import com.asadmshah.hnclone.errors.CommonServiceErrors;
-import com.asadmshah.hnclone.errors.SessionsServiceErrors;
+import com.asadmshah.hnclone.errors.*;
 import com.asadmshah.hnclone.models.RefreshSession;
 import com.asadmshah.hnclone.models.SessionToken;
 import com.asadmshah.hnclone.models.User;
@@ -91,11 +90,11 @@ public class SessionsServiceEndpointTest {
         try {
             inProcessStub.refresh(SessionToken.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.EXPIRED_TOKEN.getDescription());
+        assertThat(exception).isInstanceOf(SessionExpiredTokenStatusException.class);
     }
 
     @Test
@@ -106,11 +105,11 @@ public class SessionsServiceEndpointTest {
         try {
             inProcessStub.refresh(SessionToken.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.INVALID_TOKEN.getDescription());
+        assertThat(exception).isInstanceOf(SessionInvalidTokenStatusException.class);
     }
 
     @Test
@@ -122,11 +121,11 @@ public class SessionsServiceEndpointTest {
         try {
             inProcessStub.refresh(SessionToken.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.INVALID_TOKEN.getDescription());
+        assertThat(exception).isInstanceOf(SessionInvalidTokenStatusException.class);
     }
 
     @Test
@@ -160,11 +159,11 @@ public class SessionsServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(SessionsServiceErrors.USER_NOT_FOUND.getDescription());
+        assertThat(exception).isInstanceOf(UserNotFoundStatusException.class);
     }
 
     @Test
@@ -177,11 +176,11 @@ public class SessionsServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test

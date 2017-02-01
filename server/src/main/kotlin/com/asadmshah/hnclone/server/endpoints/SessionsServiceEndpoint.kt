@@ -6,8 +6,10 @@ import com.asadmshah.hnclone.common.sessions.InvalidTokenException
 import com.asadmshah.hnclone.common.sessions.SessionManager
 import com.asadmshah.hnclone.database.SessionsDatabase
 import com.asadmshah.hnclone.database.UsersDatabase
-import com.asadmshah.hnclone.errors.CommonServiceErrors
-import com.asadmshah.hnclone.errors.SessionsServiceErrors
+import com.asadmshah.hnclone.errors.SessionExpiredTokenStatusException
+import com.asadmshah.hnclone.errors.SessionInvalidTokenStatusException
+import com.asadmshah.hnclone.errors.UnknownStatusException
+import com.asadmshah.hnclone.errors.UserNotFoundStatusException
 import com.asadmshah.hnclone.models.SessionToken
 import com.asadmshah.hnclone.server.ServerComponent
 import com.asadmshah.hnclone.services.SessionCreateRequest
@@ -46,20 +48,20 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
 
             val issued = LocalDateTime.ofInstant(Instant.ofEpochMilli(session.issued), ZoneOffset.UTC)
             if (blockedSessionsCache.contains(session.id, issued)) {
-                responseObserver.onError(SessionsServiceErrors.INVALID_TOKEN_EXCEPTION)
+                responseObserver.onError(SessionInvalidTokenStatusException())
                 return
             }
 
             if (sessionsDatabase.read(session.uuid) == null) {
-                responseObserver.onError(SessionsServiceErrors.INVALID_TOKEN_EXCEPTION)
+                responseObserver.onError(SessionInvalidTokenStatusException())
                 return
             }
             responseObserver.onNext(sessions.createRequestToken(session.id))
             responseObserver.onCompleted()
         } catch (e: ExpiredTokenException) {
-            responseObserver.onError(SessionsServiceErrors.EXPIRED_TOKEN_EXCEPTION)
+            responseObserver.onError(SessionExpiredTokenStatusException())
         } catch (e: InvalidTokenException) {
-            responseObserver.onError(SessionsServiceErrors.INVALID_TOKEN_EXCEPTION)
+            responseObserver.onError(SessionInvalidTokenStatusException())
         }
     }
 
@@ -67,7 +69,7 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
         try {
             val user = usersDatabase.read(request.username, request.password)
             if (user == null) {
-                responseObserver.onError(SessionsServiceErrors.USER_NOT_FOUND_EXCEPTION)
+                responseObserver.onError(UserNotFoundStatusException())
                 return
             }
 
@@ -78,7 +80,7 @@ class SessionsServiceEndpoint private constructor(component: ServerComponent) : 
             responseObserver.onNext(response)
             responseObserver.onCompleted()
         } catch (e: SQLException) {
-            responseObserver.onError(CommonServiceErrors.UNKNOWN_EXCEPTION)
+            responseObserver.onError(UnknownStatusException())
         }
     }
 }

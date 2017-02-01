@@ -3,8 +3,7 @@ package com.asadmshah.hnclone.server.endpoints;
 import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.CommentsDatabase;
-import com.asadmshah.hnclone.errors.CommentsServiceErrors;
-import com.asadmshah.hnclone.errors.CommonServiceErrors;
+import com.asadmshah.hnclone.errors.*;
 import com.asadmshah.hnclone.models.Comment;
 import com.asadmshah.hnclone.models.CommentScore;
 import com.asadmshah.hnclone.models.RequestSession;
@@ -93,11 +92,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.create(CommentCreateRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -118,11 +117,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommentsServiceErrors.TEXT_REQUIRED_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(CommentTextRequiredStatusException.class);
     }
 
     @Test
@@ -143,11 +142,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommentsServiceErrors.TEXT_TOO_LONG_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(CommentTextTooLongStatusException.class);
     }
 
     @Test
@@ -170,11 +169,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -197,11 +196,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.create(request);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -320,11 +319,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.read(CommentReadRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -335,11 +334,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.read(CommentReadRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommentsServiceErrors.NOT_FOUND_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(CommentNotFoundStatusException.class);
     }
 
     @Test
@@ -402,11 +401,11 @@ public class CommentsServiceEndpointTest {
             Iterator<Comment> response = inProcessStub.readListFromPost(CommentReadListFromPostRequest.getDefaultInstance());
             response.next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -477,11 +476,11 @@ public class CommentsServiceEndpointTest {
             Iterator<Comment> response = inProcessStub.readListFromComment(CommentReadListFromCommentRequest.getDefaultInstance());
             response.next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -555,11 +554,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(CommentVoteIncrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -577,11 +576,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(CommentVoteIncrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -599,11 +598,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(CommentVoteIncrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommentsServiceErrors.NOT_FOUND_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(CommentNotFoundStatusException.class);
     }
 
     @Test
@@ -622,11 +621,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(CommentVoteIncrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -645,11 +644,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(CommentVoteIncrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -718,11 +717,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(CommentVoteDecrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -740,11 +739,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(CommentVoteDecrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -762,11 +761,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(CommentVoteDecrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommentsServiceErrors.NOT_FOUND_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(CommentNotFoundStatusException.class);
     }
 
     @Test
@@ -785,11 +784,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(CommentVoteDecrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -808,11 +807,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(CommentVoteDecrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -881,11 +880,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(CommentVoteRemoveRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNAUTHENTICATED_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -903,11 +902,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(CommentVoteRemoveRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -925,11 +924,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(CommentVoteRemoveRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommentsServiceErrors.NOT_FOUND_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(CommentNotFoundStatusException.class);
     }
 
     @Test
@@ -948,11 +947,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(CommentVoteRemoveRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -971,11 +970,11 @@ public class CommentsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(CommentVoteRemoveRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1015,11 +1014,11 @@ public class CommentsServiceEndpointTest {
             Iterator<Comment> iterator = inProcessStub.commentStream(CommentStreamRequest.getDefaultInstance());
             iterator.next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1048,11 +1047,11 @@ public class CommentsServiceEndpointTest {
             Iterator<CommentScore> iterator = inProcessStub.commentScoreStream(CommentScoreStreamRequest.getDefaultInstance());
             iterator.next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception).hasMessage(CommonServiceErrors.UNKNOWN_EXCEPTION.getMessage());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test

@@ -4,8 +4,7 @@ import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.common.tools.StringExtKt;
 import com.asadmshah.hnclone.database.PostsDatabase;
-import com.asadmshah.hnclone.errors.CommonServiceErrors;
-import com.asadmshah.hnclone.errors.PostServiceErrors;
+import com.asadmshah.hnclone.errors.*;
 import com.asadmshah.hnclone.models.Post;
 import com.asadmshah.hnclone.models.PostScore;
 import com.asadmshah.hnclone.models.RequestSession;
@@ -152,11 +151,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
+        assertThat(exception).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -177,13 +176,13 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         verify(postsDatabase, never()).create(anyInt(), anyString(), anyString(), anyString());
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.TITLE_REQUIRED.getDescription());
+        assertThat(resException).isInstanceOf(PostTitleRequiredStatusException.class);
     }
 
     @Test
@@ -203,13 +202,13 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         verify(postsDatabase, never()).create(anyInt(), anyString(), anyString(), anyString());
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.TITLE_REQUIRED.getDescription());
+        assertThat(resException).isInstanceOf(PostTitleRequiredStatusException.class);
     }
 
 
@@ -231,13 +230,13 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         verify(postsDatabase, never()).create(anyInt(), anyString(), anyString(), anyString());
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.TITLE_TOO_LONG.getDescription());
+        assertThat(resException).isInstanceOf(PostTitleTooLongStatusException.class);
     }
 
     @Test
@@ -258,13 +257,13 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         verify(postsDatabase, never()).create(anyInt(), anyString(), anyString(), anyString());
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.CONTENT_REQUIRED.getDescription());
+        assertThat(resException).isInstanceOf(PostContentRequiredStatusException.class);
     }
     @Test
     public void createPost_shouldSucceedWithTitleAndUrlButNoText() {
@@ -343,11 +342,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.CONTENT_URL_INVALID.getDescription());
+        assertThat(resException).isInstanceOf(PostURLInvalidStatusException.class);
     }
 
     @Test
@@ -369,11 +368,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.CONTENT_TEXT_TOO_LONG.getDescription());
+        assertThat(resException).isInstanceOf(PostTextTooLongStatusException.class);
     }
 
     @Test
@@ -399,11 +398,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(resException).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -428,11 +427,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(resException).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -454,11 +453,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.create(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.CONTENT_URL_UNACCEPTABLE.getDescription());
+        assertThat(resException).isInstanceOf(PostURLUnacceptableStatusException.class);
     }
 
     @Test
@@ -532,11 +531,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.read(req);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
+        assertThat(resException).isInstanceOf(PostNotFoundStatusException.class);
     }
 
     @Test
@@ -547,11 +546,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.read(PostReadRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -562,11 +561,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(request);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
+        assertThat(resException).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -582,11 +581,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(PostVoteDecrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(resException).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -605,11 +604,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(request);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(resException).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -629,11 +628,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteDecrement(request);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
+        assertThat(resException).isInstanceOf(PostNotFoundStatusException.class);
     }
 
     @Test
@@ -686,13 +685,13 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(request);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         verifyZeroInteractions(postsDatabase);
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
+        assertThat(resException).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -712,11 +711,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(request);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
+        assertThat(resException).isInstanceOf(PostNotFoundStatusException.class);
     }
 
     @Test
@@ -733,11 +732,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(PostVoteIncrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -753,11 +752,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteIncrement(PostVoteIncrementRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -810,13 +809,13 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(request);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         verifyZeroInteractions(postsDatabase);
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNAUTHENTICATED.getDescription());
+        assertThat(resException).isInstanceOf(UnauthenticatedStatusException.class);
     }
 
     @Test
@@ -836,11 +835,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(request);
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(PostServiceErrors.NOT_FOUND.getDescription());
+        assertThat(resException).isInstanceOf(PostNotFoundStatusException.class);
     }
 
     @Test
@@ -857,11 +856,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(PostVoteRemoveRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(resException).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -877,11 +876,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.voteRemove(PostVoteRemoveRequest.getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            resException = e;
+            resException = ServiceError.restore(e);
         }
 
         assertThat(resException).isNotNull();
-        assertThat(resException.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(resException).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -987,11 +986,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.readNewStream(PostReadListRequest.getDefaultInstance()).next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1002,11 +1001,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.readNewStream(PostReadListRequest.getDefaultInstance()).next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1017,11 +1016,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.readHotStream(PostReadListRequest.getDefaultInstance()).next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1032,11 +1031,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.readHotStream(PostReadListRequest.getDefaultInstance()).next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1100,11 +1099,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.readNewFromUserStream(PostReadListFromUserRequest.getDefaultInstance()).next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1115,11 +1114,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.readNewFromUserStream(PostReadListFromUserRequest.getDefaultInstance()).next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1185,11 +1184,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.readTopFromUserStream(PostReadListFromUserRequest.getDefaultInstance()).next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
@@ -1200,11 +1199,11 @@ public class PostsServiceEndpointTest {
         try {
             inProcessStub.readTopFromUserStream(PostReadListFromUserRequest.getDefaultInstance()).next();
         } catch (StatusRuntimeException e) {
-            exception = e;
+            exception = ServiceError.restore(e);
         }
 
         assertThat(exception).isNotNull();
-        assertThat(exception.getStatus().getDescription()).isEqualTo(CommonServiceErrors.UNKNOWN.getDescription());
+        assertThat(exception).isInstanceOf(UnknownStatusException.class);
     }
 
     @Test
