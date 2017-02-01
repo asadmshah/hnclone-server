@@ -1,6 +1,6 @@
 package com.asadmshah.hnclone.client
 
-import com.asadmshah.hnclone.errors.SessionsServiceErrors
+import com.asadmshah.hnclone.errors.SessionInvalidTokenStatusException
 import com.asadmshah.hnclone.models.RequestSession
 import com.asadmshah.hnclone.services.SessionCreateRequest
 import com.asadmshah.hnclone.services.SessionsServiceGrpc
@@ -38,7 +38,7 @@ SessionsServiceClientImpl(private val sessions: SessionStorage,
                         if (nullable) {
                             0
                         } else {
-                            throw SessionsServiceErrors.INVALID_TOKEN_EXCEPTION
+                            throw SessionInvalidTokenStatusException()
                         }
                     }
                 }
