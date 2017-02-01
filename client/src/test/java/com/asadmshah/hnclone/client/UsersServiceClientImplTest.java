@@ -4,8 +4,7 @@ import com.asadmshah.hnclone.cache.BlockedSessionsCache;
 import com.asadmshah.hnclone.common.sessions.SessionManager;
 import com.asadmshah.hnclone.database.UserExistsException;
 import com.asadmshah.hnclone.database.UsersDatabase;
-import com.asadmshah.hnclone.errors.CommonServiceErrors;
-import com.asadmshah.hnclone.errors.UsersServiceErrors;
+import com.asadmshah.hnclone.errors.*;
 import com.asadmshah.hnclone.models.RequestSession;
 import com.asadmshah.hnclone.models.SessionToken;
 import com.asadmshah.hnclone.models.User;
@@ -15,7 +14,6 @@ import com.asadmshah.hnclone.services.UserCreateRequest;
 import com.asadmshah.hnclone.services.UserReadUsingIDRequest;
 import com.asadmshah.hnclone.services.UserUpdateAboutRequest;
 import com.asadmshah.hnclone.services.UserUpdatePasswordRequest;
-import io.grpc.StatusRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -77,7 +75,7 @@ public class UsersServiceClientImplTest {
         assertThat(user).isNotNull();
     }
 
-    @Test
+    @Test(expected = UsernameRequiredStatusException.class)
     public void create_shouldThrowUsernameRequiredException() throws Exception {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
@@ -85,18 +83,10 @@ public class UsersServiceClientImplTest {
                 .setPassword("password")
                 .build();
 
-        StatusRuntimeException exception = null;
-        try {
-            usersClient.create(request).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isEqualTo(UsersServiceErrors.USERNAME_REQUIRED_EXCEPTION);
+        usersClient.create(request).blockingGet();
     }
 
-    @Test
+    @Test(expected = UsernameInvalidStatusException.class)
     public void create_shouldThrowUsernameInvalidException() throws Exception {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
@@ -104,18 +94,10 @@ public class UsersServiceClientImplTest {
                 .setPassword("password")
                 .build();
 
-        StatusRuntimeException exception = null;
-        try {
-            usersClient.create(request).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isEqualTo(UsersServiceErrors.USERNAME_INVALID_EXCEPTION);
+        usersClient.create(request).blockingGet();
     }
 
-    @Test
+    @Test(expected = PasswordInsecureStatusException.class)
     public void create_shouldThrowInvalidPasswordException() throws Exception {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
@@ -123,18 +105,10 @@ public class UsersServiceClientImplTest {
                 .setPassword("")
                 .build();
 
-        StatusRuntimeException exception = null;
-        try {
-            usersClient.create(request).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isEqualTo(UsersServiceErrors.PASSWORD_INSECURE_EXCEPTION);
+        usersClient.create(request).blockingGet();
     }
 
-    @Test
+    @Test(expected = UserAboutTooLongStatusException.class)
     public void create_shouldThrowAboutTooLongException() throws Exception {
         UserCreateRequest request = UserCreateRequest
                 .newBuilder()
@@ -143,18 +117,10 @@ public class UsersServiceClientImplTest {
                 .setAbout(StringUtils.repeat("A", 513))
                 .build();
 
-        StatusRuntimeException exception = null;
-        try {
-            usersClient.create(request).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isEqualTo(UsersServiceErrors.ABOUT_TOO_LONG_EXCEPTION);
+        usersClient.create(request).blockingGet();
     }
 
-    @Test
+    @Test(expected = UsernameExistsStatusException.class)
     public void create_shouldThrowUserExistsException() throws Exception {
         when(usersDatabase.create(anyString(), anyString(), anyString())).thenThrow(UserExistsException.class);
 
@@ -164,18 +130,10 @@ public class UsersServiceClientImplTest {
                 .setPassword("password")
                 .build();
 
-        StatusRuntimeException exception = null;
-        try {
-            usersClient.create(request).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isEqualTo(UsersServiceErrors.USERNAME_EXISTS_EXCEPTION);
+        usersClient.create(request).blockingGet();
     }
 
-    @Test
+    @Test(expected = UnknownStatusException.class)
     public void create_shouldThrowUnknownException() throws Exception {
         when(usersDatabase.create(anyString(), anyString(), anyString())).thenThrow(SQLException.class);
 
@@ -185,15 +143,7 @@ public class UsersServiceClientImplTest {
                 .setPassword("password")
                 .build();
 
-        StatusRuntimeException exception = null;
-        try {
-            usersClient.create(request).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isEqualTo(CommonServiceErrors.UNKNOWN_EXCEPTION);
+        usersClient.create(request).blockingGet();
     }
 
     @Test
@@ -215,34 +165,18 @@ public class UsersServiceClientImplTest {
         assertThat(resUser).isEqualTo(expUser);
     }
 
-    @Test
+    @Test(expected = UnknownStatusException.class)
     public void readUsingID_shouldThrowUnknownException() throws Exception {
         when(usersDatabase.read(anyInt())).thenThrow(SQLException.class);
 
-        StatusRuntimeException exception = null;
-        try {
-            usersClient.read(UserReadUsingIDRequest.getDefaultInstance()).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isEqualTo(CommonServiceErrors.UNKNOWN_EXCEPTION);
+        usersClient.read(UserReadUsingIDRequest.getDefaultInstance()).blockingGet();
     }
 
-    @Test
+    @Test(expected = UserNotFoundStatusException.class)
     public void readUsingID_shouldThrowNotFoundException() throws Exception {
         when(usersDatabase.read(anyInt())).thenReturn(null);
 
-        StatusRuntimeException exception = null;
-        try {
-            usersClient.read(UserReadUsingIDRequest.getDefaultInstance()).blockingGet();
-        } catch (StatusRuntimeException e) {
-            exception = e;
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isEqualTo(UsersServiceErrors.NOT_FOUND_EXCEPTION);
+        usersClient.read(UserReadUsingIDRequest.getDefaultInstance()).blockingGet();
     }
 
     @Test
