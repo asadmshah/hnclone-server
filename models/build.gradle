@@ -6,6 +6,9 @@ repositories {
     mavenCentral()
 }
 
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
 dependencies {
     compile group: 'com.google.protobuf', name: 'protobuf-java', version: "$protoc_version"
 
