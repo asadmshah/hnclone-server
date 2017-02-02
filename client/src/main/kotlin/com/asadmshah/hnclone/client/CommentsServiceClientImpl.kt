@@ -145,8 +145,11 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun subscribeToCommentsStream(request: CommentStreamRequest): Flowable<Comment> {
-        return baseClient
-                .call(sessions, CommentsServiceGrpc.METHOD_COMMENT_STREAM, request, BackpressureStrategy.LATEST)
+        val f1 = sessionsClient.refresh(force = false, nullable = true).toFlowable<Comment>()
+        val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_COMMENT_STREAM, request, BackpressureStrategy.LATEST)
+
+        return Flowable
+                .concat(f1, f2)
                 .onStatusRuntimeErrorResumeNext()
     }
 
@@ -158,8 +161,11 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun subscribeToCommentScoresStream(request: CommentScoreStreamRequest): Flowable<CommentScore> {
-        return baseClient
-                .call(sessions, CommentsServiceGrpc.METHOD_COMMENT_SCORE_STREAM, request, BackpressureStrategy.LATEST)
+        val f1 = sessionsClient.refresh(force = false, nullable = true).toFlowable<CommentScore>()
+        val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_COMMENT_SCORE_STREAM, request, BackpressureStrategy.LATEST)
+
+        return Flowable
+                .concat(f1, f2)
                 .onStatusRuntimeErrorResumeNext()
     }
 }
