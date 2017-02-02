@@ -1392,4 +1392,73 @@ public class PostsServiceEndpointTest {
         assertThat(resScores.get(0)).isEqualTo(expScore);
     }
 
+    @Test
+    public void voteIncrement_shouldPublishEvent() throws Exception {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
+        when(postsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(10);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        PostVoteIncrementRequest request = PostVoteIncrementRequest.getDefaultInstance();
+
+        inProcessStub.voteIncrement(request);
+
+        PostScore expect = PostScore.newBuilder().setId(0).setScore(10).build();
+
+        ArgumentCaptor<PostScore> captor = ArgumentCaptor.forClass(PostScore.class);
+        verify(pubSub).pubPostScore(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(expect);
+    }
+
+    @Test
+    public void voteDecrement_shouldPublishEvent() throws Exception {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
+        when(postsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(10);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        PostVoteDecrementRequest request = PostVoteDecrementRequest.getDefaultInstance();
+
+        inProcessStub.voteDecrement(request);
+
+        PostScore expect = PostScore.newBuilder().setId(0).setScore(10).build();
+
+        ArgumentCaptor<PostScore> captor = ArgumentCaptor.forClass(PostScore.class);
+        verify(pubSub).pubPostScore(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(expect);
+    }
+
+    @Test
+    public void voteRemove_shouldPublishEvent() throws Exception {
+        RequestSession session = RequestSession.newBuilder().setId(1).build();
+
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
+        when(postsDatabase.removeScore(anyInt(), anyInt())).thenReturn(10);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        PostVoteRemoveRequest request = PostVoteRemoveRequest.getDefaultInstance();
+
+        inProcessStub.voteRemove(request);
+
+        PostScore expect = PostScore.newBuilder().setId(0).setScore(10).build();
+
+        ArgumentCaptor<PostScore> captor = ArgumentCaptor.forClass(PostScore.class);
+        verify(pubSub).pubPostScore(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(expect);
+    }
+
 }

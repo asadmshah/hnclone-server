@@ -204,6 +204,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
+
+        pubSub.pubPostScore(PostScore
+                .newBuilder()
+                .setId(response.id)
+                .setScore(response.score)
+                .build())
     }
 
     override fun voteIncrement(request: PostVoteIncrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {
@@ -243,6 +249,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
+
+        pubSub.pubPostScore(PostScore
+                .newBuilder()
+                .setId(response.id)
+                .setScore(response.score)
+                .build())
     }
 
     override fun voteRemove(request: PostVoteRemoveRequest, responseObserver: StreamObserver<PostScoreResponse>) {
@@ -282,6 +294,12 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         responseObserver.onNext(response)
         responseObserver.onCompleted()
+
+        pubSub.pubPostScore(PostScore
+                .newBuilder()
+                .setId(response.id)
+                .setScore(response.score)
+                .build())
     }
 
     override fun postScoreChangeStream(request: PostScoreChangeRequest, responseObserver: StreamObserver<PostScore>) {
