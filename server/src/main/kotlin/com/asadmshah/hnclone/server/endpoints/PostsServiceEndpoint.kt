@@ -14,9 +14,9 @@ import com.asadmshah.hnclone.services.*
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
 import io.grpc.stub.StreamObserver
+import io.reactivex.BackpressureOverflowStrategy
+import io.reactivex.Flowable
 import org.apache.commons.validator.routines.UrlValidator
-import org.reactivestreams.Subscriber
-import org.reactivestreams.Subscription
 import java.sql.SQLException
 
 class PostsServiceEndpoint private constructor(component: ServerComponent) : PostsServiceGrpc.PostsServiceImplBase() {
@@ -124,35 +124,11 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readNew(userId, request.limit, request.offset)
-                .subscribe(object : Subscriber<Post> {
-
-                    private var subscription: Subscription? = null
-
-                    override fun onComplete() {
-                        responseObserver.onCompleted()
-                    }
-
-                    override fun onNext(it: Post) {
-                        responseObserver.onNext(it)
-                        subscription?.request(1)
-                    }
-
-                    override fun onError(it: Throwable) {
-                        when (it) {
-                            is SQLException -> {
-                                responseObserver.onError(UnknownStatusException())
-                            }
-                            else -> {
-                                responseObserver.onError(UnknownStatusException())
-                            }
-                        }
-                    }
-
-                    override fun onSubscribe(s: Subscription) {
-                        subscription = s
-                        s.request(1)
-                    }
-                })
+                .onBackpressureBuffer()
+                .onErrorResumeNext { it: Throwable ->
+                    Flowable.error(UnknownStatusException())
+                }
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 
     override fun readHotStream(request: PostReadListRequest, responseObserver: StreamObserver<Post>) {
@@ -160,35 +136,11 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readTop(userId, request.limit, request.offset)
-                .subscribe(object : Subscriber<Post> {
-
-                    private var subscription: Subscription? = null
-
-                    override fun onComplete() {
-                        responseObserver.onCompleted()
-                    }
-
-                    override fun onNext(it: Post) {
-                        responseObserver.onNext(it)
-                        subscription?.request(1)
-                    }
-
-                    override fun onError(it: Throwable) {
-                        when (it) {
-                            is SQLException -> {
-                                responseObserver.onError(UnknownStatusException())
-                            }
-                            else -> {
-                                responseObserver.onError(UnknownStatusException())
-                            }
-                        }
-                    }
-
-                    override fun onSubscribe(s: Subscription) {
-                        subscription = s
-                        s.request(1)
-                    }
-                })
+                .onBackpressureBuffer()
+                .onErrorResumeNext { it: Throwable ->
+                    Flowable.error(UnknownStatusException())
+                }
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 
     override fun readNewFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
@@ -196,35 +148,11 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readNew(viewerId, request.id, request.limit, request.offset)
-                .subscribe(object : Subscriber<Post> {
-
-                    private var subscription: Subscription? = null
-
-                    override fun onComplete() {
-                        responseObserver.onCompleted()
-                    }
-
-                    override fun onNext(it: Post) {
-                        responseObserver.onNext(it)
-                        subscription?.request(1)
-                    }
-
-                    override fun onError(it: Throwable) {
-                        when (it) {
-                            is SQLException -> {
-                                responseObserver.onError(UnknownStatusException())
-                            }
-                            else -> {
-                                responseObserver.onError(UnknownStatusException())
-                            }
-                        }
-                    }
-
-                    override fun onSubscribe(s: Subscription) {
-                        subscription = s
-                        s.request(1)
-                    }
-                })
+                .onBackpressureBuffer()
+                .onErrorResumeNext { it: Throwable ->
+                    Flowable.error(UnknownStatusException())
+                }
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 
     override fun readTopFromUserStream(request: PostReadListFromUserRequest, responseObserver: StreamObserver<Post>) {
@@ -232,35 +160,11 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
 
         postsDatabase
                 .readTop(viewerId, request.id, request.limit, request.offset)
-                .subscribe(object : Subscriber<Post> {
-
-                    private var subscription: Subscription? = null
-
-                    override fun onComplete() {
-                        responseObserver.onCompleted()
-                    }
-
-                    override fun onNext(it: Post) {
-                        responseObserver.onNext(it)
-                        subscription?.request(1)
-                    }
-
-                    override fun onError(it: Throwable) {
-                        when (it) {
-                            is SQLException -> {
-                                responseObserver.onError(UnknownStatusException())
-                            }
-                            else -> {
-                                responseObserver.onError(UnknownStatusException())
-                            }
-                        }
-                    }
-
-                    override fun onSubscribe(s: Subscription) {
-                        subscription = s
-                        s.request(1)
-                    }
-                })
+                .onBackpressureBuffer()
+                .onErrorResumeNext { it: Throwable ->
+                    Flowable.error(UnknownStatusException())
+                }
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 
     override fun voteDecrement(request: PostVoteDecrementRequest, responseObserver: StreamObserver<PostScoreResponse>) {
@@ -381,47 +285,14 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
     }
 
     override fun postScoreChangeStream(request: PostScoreChangeRequest, responseObserver: StreamObserver<PostScore>) {
-        var flowable = pubSub.subPostScore()
-        if (request.id > 0) {
-            flowable = flowable.filter { it.id == request.id }
-        }
-
-        flowable
-                .onBackpressureLatest()
-                .subscribe(object : Subscriber<PostScore> {
-
-                    private var s: Subscription? = null
-
-                    override fun onSubscribe(s: Subscription) {
-                        this.s = s
-                        this.s?.request(1)
-                    }
-
-                    override fun onError(t: Throwable) {
-                        try {
-                            responseObserver.onError(UnknownStatusException())
-                        } catch (e: Exception) {
-
-                        }
-                    }
-
-                    override fun onNext(v: PostScore) {
-                        try {
-                            responseObserver.onNext(v)
-                            this.s?.request(1)
-                        } catch (e: Exception) {
-
-                        }
-                    }
-
-                    override fun onComplete() {
-                        try {
-                            responseObserver.onCompleted()
-                        } catch (e: Exception) {
-
-                        }
-                    }
-                })
+        return pubSub
+                .subPostScore()
+                .onBackpressureBuffer(100, null, BackpressureOverflowStrategy.DROP_OLDEST)
+                .filter { request.id <= 0 || request.id == it.id }
+                .onErrorResumeNext { it: Throwable ->
+                    Flowable.error(UnknownStatusException())
+                }
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 
 }

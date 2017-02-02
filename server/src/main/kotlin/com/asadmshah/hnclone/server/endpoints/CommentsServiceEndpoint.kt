@@ -11,10 +11,8 @@ import com.asadmshah.hnclone.services.*
 import io.grpc.ServerInterceptors
 import io.grpc.ServerServiceDefinition
 import io.grpc.stub.StreamObserver
+import io.reactivex.BackpressureOverflowStrategy
 import io.reactivex.Flowable
-import io.reactivex.schedulers.Schedulers
-import org.reactivestreams.Subscriber
-import org.reactivestreams.Subscription
 import java.sql.SQLException
 
 class CommentsServiceEndpoint private constructor(component: ServerComponent) : CommentsServiceGrpc.CommentsServiceImplBase() {
@@ -29,8 +27,8 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         }
     }
 
-    private val comments = component.commentsDatabase()
-    private val pubsub = component.pubSub()
+    private val commentsDatabase = component.commentsDatabase()
+    private val pubSub = component.pubSub()
 
     override fun create(request: CommentCreateRequest, responseObserver: StreamObserver<Comment>) {
         val session: RequestSession? = SessionInterceptor.KEY_SESSION.get()
@@ -53,9 +51,9 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         val comment: Comment?
         try {
             if (request.commentId > 0) {
-                comment = comments.create(session.id, request.postId, request.commentId, text)
+                comment = commentsDatabase.create(session.id, request.postId, request.commentId, text)
             } else {
-                comment = comments.create(session.id, request.postId, text)
+                comment = commentsDatabase.create(session.id, request.postId, text)
             }
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
@@ -70,7 +68,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
         responseObserver.onNext(comment)
         responseObserver.onCompleted()
 
-        pubsub.pubComment(comment)
+        pubSub.pubComment(comment)
     }
 
     override fun read(request: CommentReadRequest, responseObserver: StreamObserver<Comment>) {
@@ -78,7 +76,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         val comment: Comment?
         try {
-            comment = comments.readComment(viewerId, request.postId, request.commentId)
+            comment = commentsDatabase.readComment(viewerId, request.postId, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
@@ -96,91 +94,25 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
     override fun readListFromPost(request: CommentReadListFromPostRequest, responseObserver: StreamObserver<Comment>) {
         val viewerId = SessionInterceptor.KEY_SESSION.get()?.id ?: -1
 
-        comments
+        commentsDatabase
                 .readComments(viewerId, request.postId)
                 .onBackpressureBuffer()
                 .onErrorResumeNext { it: Throwable ->
                     Flowable.error<Comment>(UnknownStatusException())
                 }
-                .subscribe(object : Subscriber<Comment> {
-
-                    var s: Subscription? = null
-
-                    override fun onSubscribe(s: Subscription) {
-                        this.s = s
-                        s.request(1)
-                    }
-
-                    override fun onNext(t: Comment) {
-                        try {
-                            responseObserver.onNext(t)
-                            s?.request(1)
-                        } catch (ignored: Exception) {
-                            s?.cancel()
-                        }
-                    }
-
-                    override fun onError(t: Throwable) {
-                        try {
-                            responseObserver.onError(t)
-                        } catch (ignored: Exception) {
-
-                        }
-                    }
-
-                    override fun onComplete() {
-                        try {
-                            responseObserver.onCompleted()
-                        } catch (ignored: Exception) {
-
-                        }
-                    }
-                })
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 
     override fun readListFromComment(request: CommentReadListFromCommentRequest, responseObserver: StreamObserver<Comment>) {
         val viewerId = SessionInterceptor.KEY_SESSION.get()?.id ?: -1
 
-        comments
+        commentsDatabase
                 .readComments(viewerId, request.postId, request.commentId)
                 .onBackpressureBuffer()
                 .onErrorResumeNext { it: Throwable ->
                     Flowable.error<Comment>(UnknownStatusException())
                 }
-                .subscribe(object : Subscriber<Comment> {
-
-                    var s: Subscription? = null
-
-                    override fun onSubscribe(s: Subscription) {
-                        this.s = s
-                        s.request(1)
-                    }
-
-                    override fun onNext(t: Comment) {
-                        try {
-                            responseObserver.onNext(t)
-                            s?.request(1)
-                        } catch (ignored: Exception) {
-                            s?.cancel()
-                        }
-                    }
-
-                    override fun onError(t: Throwable) {
-                        try {
-                            responseObserver.onError(t)
-                        } catch (ignored: Exception) {
-
-                        }
-                    }
-
-                    override fun onComplete() {
-                        try {
-                            responseObserver.onCompleted()
-                        } catch (ignored: Exception) {
-
-                        }
-                    }
-                })
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 
     override fun voteIncrement(request: CommentVoteIncrementRequest, responseObserver: StreamObserver<CommentScoreResponse>) {
@@ -192,7 +124,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         val comment: Comment?
         try {
-            comment = comments.readComment(-1, request.postId, request.commentId)
+            comment = commentsDatabase.readComment(-1, request.postId, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
@@ -205,7 +137,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         val score: Int?
         try {
-            score = comments.incrementScore(session.id, request.commentId)
+            score = commentsDatabase.incrementScore(session.id, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
@@ -234,7 +166,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
                 .setScore(response.score)
                 .build()
 
-        pubsub.pubCommentScore(commentScore)
+        pubSub.pubCommentScore(commentScore)
     }
 
     override fun voteDecrement(request: CommentVoteDecrementRequest, responseObserver: StreamObserver<CommentScoreResponse>) {
@@ -246,7 +178,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         val comment: Comment?
         try {
-            comment = comments.readComment(-1, request.postId, request.commentId)
+            comment = commentsDatabase.readComment(-1, request.postId, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
@@ -259,7 +191,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         val score: Int?
         try {
-            score = comments.decrementScore(session.id, request.commentId)
+            score = commentsDatabase.decrementScore(session.id, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
@@ -288,7 +220,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
                 .setScore(response.score)
                 .build()
 
-        pubsub.pubCommentScore(commentScore)
+        pubSub.pubCommentScore(commentScore)
     }
 
     override fun voteRemove(request: CommentVoteRemoveRequest, responseObserver: StreamObserver<CommentScoreResponse>) {
@@ -300,7 +232,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         val comment: Comment?
         try {
-            comment = comments.readComment(-1, request.postId, request.commentId)
+            comment = commentsDatabase.readComment(-1, request.postId, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
@@ -313,7 +245,7 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
 
         val score: Int?
         try {
-            score = comments.removeScore(session.id, request.commentId)
+            score = commentsDatabase.removeScore(session.id, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
@@ -342,94 +274,26 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
                 .setScore(response.score)
                 .build()
 
-        pubsub.pubCommentScore(commentScore)
+        pubSub.pubCommentScore(commentScore)
     }
 
     override fun commentStream(request: CommentStreamRequest, responseObserver: StreamObserver<Comment>) {
-        pubsub.subComments()
-                .onBackpressureDrop()
+        pubSub.subComments()
+                .onBackpressureBuffer(100, null, BackpressureOverflowStrategy.DROP_OLDEST)
                 .onErrorResumeNext { it: Throwable ->
                     Flowable.error(UnknownStatusException())
                 }
                 .filter { it.postId == request.postId }
-                .observeOn(Schedulers.trampoline())
-                .subscribe(object : Subscriber<Comment> {
-
-                    var s: Subscription? = null
-
-                    override fun onSubscribe(s: Subscription) {
-                        this.s = s
-                        s.request(1)
-                    }
-
-                    override fun onNext(t: Comment) {
-                        try {
-                            responseObserver.onNext(t)
-                            s?.request(1)
-                        } catch (ignored: Exception) {
-                            s?.cancel()
-                        }
-                    }
-
-                    override fun onError(t: Throwable) {
-                        try {
-                            responseObserver.onError(t)
-                        } catch (ignored: Exception) {
-
-                        }
-                    }
-
-                    override fun onComplete() {
-                        try {
-                            responseObserver.onCompleted()
-                        } catch (ignored: Exception) {
-
-                        }
-                    }
-                })
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 
     override fun commentScoreStream(request: CommentScoreStreamRequest, responseObserver: StreamObserver<CommentScore>) {
-        pubsub.subCommentScores()
-                .onBackpressureDrop()
+        pubSub.subCommentScores()
+                .onBackpressureBuffer(100, null, BackpressureOverflowStrategy.DROP_OLDEST)
                 .onErrorResumeNext { it: Throwable ->
                     Flowable.error(UnknownStatusException())
                 }
                 .filter { it.postId == request.postId }
-                .observeOn(Schedulers.trampoline())
-                .subscribe(object : Subscriber<CommentScore> {
-
-                    var s: Subscription? = null
-
-                    override fun onSubscribe(s: Subscription) {
-                        this.s = s
-                        s.request(1)
-                    }
-
-                    override fun onNext(t: CommentScore) {
-                        try {
-                            responseObserver.onNext(t)
-                            s?.request(1)
-                        } catch (ignored: Exception) {
-                            s?.cancel()
-                        }
-                    }
-
-                    override fun onError(t: Throwable) {
-                        try {
-                            responseObserver.onError(t)
-                        } catch (ignored: Exception) {
-
-                        }
-                    }
-
-                    override fun onComplete() {
-                        try {
-                            responseObserver.onCompleted()
-                        } catch (ignored: Exception) {
-
-                        }
-                    }
-                })
+                .blockingSubscribeStreamObserver(responseObserver)
     }
 }

@@ -1312,7 +1312,7 @@ public class PostsServiceEndpointTest {
 
         List<PostScore> expScores = scores.subList(0, 5);
 
-        when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).delay(110, TimeUnit.MILLISECONDS));
+        when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).concatMap(it -> Flowable.just(it).delay(100, TimeUnit.MILLISECONDS)));
 
         CountDownLatch counter = new CountDownLatch(5);
 
@@ -1356,7 +1356,7 @@ public class PostsServiceEndpointTest {
 
         PostScore expScore = scores.get(5);
 
-        when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).delay(110, TimeUnit.MILLISECONDS));
+        when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).concatMap(it -> Flowable.just(it).delay(100, TimeUnit.MILLISECONDS)));
 
         CountDownLatch counter = new CountDownLatch(1);
 

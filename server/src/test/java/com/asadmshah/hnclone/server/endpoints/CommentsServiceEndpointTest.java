@@ -1023,19 +1023,19 @@ public class CommentsServiceEndpointTest {
 
     @Test
     public void commentsStream_shouldComplete() throws Exception {
-        Comment comment1 = Comment.newBuilder().setPostId(1).setId(1).build();
-        Comment comment2 = Comment.newBuilder().setPostId(2).setId(2).build();
-        Comment comment3 = Comment.newBuilder().setPostId(1).setId(3).build();
-        Comment comment4 = Comment.newBuilder().setPostId(2).setId(4).build();
-        Comment comment5 = Comment.newBuilder().setPostId(1).setId(5).build();
+        Comment cs1 = Comment.newBuilder().setPostId(1).setId(1).build();
+        Comment cs2 = Comment.newBuilder().setPostId(2).setId(2).build();
+        Comment cs3 = Comment.newBuilder().setPostId(1).setId(3).build();
+        Comment cs4 = Comment.newBuilder().setPostId(2).setId(4).build();
+        Comment cs5 = Comment.newBuilder().setPostId(1).setId(5).build();
 
-        when(pubSub.subComments()).thenReturn(Flowable.just(comment1, comment2, comment3, comment4, comment5).delay(100, TimeUnit.MILLISECONDS));
+        when(pubSub.subComments()).thenReturn(Flowable.just(cs1, cs2, cs3, cs4, cs5).concatMap(it -> Flowable.just(it).delay(50, TimeUnit.MILLISECONDS)));
 
         CommentStreamRequest request = CommentStreamRequest.newBuilder().setPostId(1).build();
 
         List<Comment> response = Lists.newArrayList(inProcessStub.commentStream(request));
 
-        assertThat(response).containsExactly(comment1, comment3, comment5).inOrder();
+        assertThat(response).containsExactly(cs1, cs3, cs5).inOrder();
     }
 
     @Test
@@ -1062,7 +1062,7 @@ public class CommentsServiceEndpointTest {
         CommentScore cs4 = CommentScore.newBuilder().setPostId(2).setCommentId(4).build();
         CommentScore cs5 = CommentScore.newBuilder().setPostId(1).setCommentId(5).build();
 
-        when(pubSub.subCommentScores()).thenReturn(Flowable.just(cs1, cs2, cs3, cs4, cs5).delay(100, TimeUnit.MILLISECONDS));
+        when(pubSub.subCommentScores()).thenReturn(Flowable.just(cs1, cs2, cs3, cs4, cs5).concatMap(it -> Flowable.just(it).delay(50, TimeUnit.MILLISECONDS)));
 
         CommentScoreStreamRequest request = CommentScoreStreamRequest.newBuilder().setPostId(1).build();
 
