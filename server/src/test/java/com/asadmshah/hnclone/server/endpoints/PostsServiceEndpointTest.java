@@ -571,7 +571,7 @@ public class PostsServiceEndpointTest {
     @Test
     public void voteDecrement_shouldThrowSQLExceptionOnRead() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
-        when(postsDatabase.read(anyInt(), anyInt())).thenThrow(SQLException.class);
+        when(postsDatabase.decrementScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -593,7 +593,6 @@ public class PostsServiceEndpointTest {
         PostVoteDecrementRequest request = PostVoteDecrementRequest.getDefaultInstance();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.decrementScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
@@ -616,7 +615,7 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(100).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(null);
+        when(postsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(null);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -637,11 +636,6 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void voteDecrement_shouldComplete() {
-        Post post = Post
-                .newBuilder()
-                .setId(2)
-                .build();
-
         PostScoreResponse exp = PostScoreResponse
                 .newBuilder()
                 .setId(2)
@@ -652,7 +646,6 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(1).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
         when(postsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
@@ -661,17 +654,12 @@ public class PostsServiceEndpointTest {
 
         PostVoteDecrementRequest request = PostVoteDecrementRequest
                 .newBuilder()
-                .setId(post.getId())
+                .setId(exp.getId())
                 .build();
 
         PostScoreResponse res = inProcessStub.voteDecrement(request);
 
-        verify(postsDatabase).read(uidCaptor.capture(), psrIdCaptor.capture());
-        verify(postsDatabase).decrementScore(uidCaptor.capture(), psvdIdCaptor.capture());
-
-        assertThat(uidCaptor.getAllValues()).containsExactly(session.getId(), session.getId());
-        assertThat(psrIdCaptor.getValue()).isEqualTo(exp.getId());
-        assertThat(psvdIdCaptor.getValue()).isEqualTo(exp.getId());
+        verify(postsDatabase).decrementScore(session.getId(), request.getId());
 
         assertThat(res).isNotNull();
         assertThat(res).isEqualTo(exp);
@@ -699,7 +687,7 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(1).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(null);
+        when(postsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(null);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -721,7 +709,6 @@ public class PostsServiceEndpointTest {
     @Test
     public void voteIncrement_shouldThrowSQLExceptionOnIncrement() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.incrementScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
@@ -742,7 +729,7 @@ public class PostsServiceEndpointTest {
     @Test
     public void voteIncrement_shouldThrowSQLExceptionOnRead() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
-        when(postsDatabase.read(anyInt(), anyInt())).thenThrow(SQLException.class);
+        when(postsDatabase.incrementScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -761,11 +748,6 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void voteIncrement_shouldComplete() {
-        Post post = Post
-                .newBuilder()
-                .setId(2)
-                .build();
-
         PostScoreResponse exp = PostScoreResponse
                 .newBuilder()
                 .setId(2)
@@ -776,7 +758,6 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(1).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
         when(postsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
@@ -785,17 +766,12 @@ public class PostsServiceEndpointTest {
 
         PostVoteIncrementRequest request = PostVoteIncrementRequest
                 .newBuilder()
-                .setId(post.getId())
+                .setId(exp.getId())
                 .build();
 
         PostScoreResponse res = inProcessStub.voteIncrement(request);
 
-        verify(postsDatabase).read(uidCaptor.capture(), psrIdCaptor.capture());
-        verify(postsDatabase).incrementScore(uidCaptor.capture(), psviIdCaptor.capture());
-
-        assertThat(uidCaptor.getAllValues()).containsExactly(session.getId(), session.getId());
-        assertThat(psrIdCaptor.getValue()).isEqualTo(exp.getId());
-        assertThat(psviIdCaptor.getValue()).isEqualTo(exp.getId());
+        verify(postsDatabase).incrementScore(session.getId(), request.getId());
 
         assertThat(res).isNotNull();
         assertThat(res).isEqualTo(exp);
@@ -823,7 +799,7 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(1).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(null);
+        when(postsDatabase.removeScore(anyInt(), anyInt())).thenReturn(null);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -845,7 +821,6 @@ public class PostsServiceEndpointTest {
     @Test
     public void voteRemove_shouldThrowSQLExceptionOnRemove() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.removeScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
@@ -866,7 +841,7 @@ public class PostsServiceEndpointTest {
     @Test
     public void voteRemove_shouldThrowSQLExceptionOnRead() {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(RequestSession.getDefaultInstance());
-        when(postsDatabase.read(anyInt(), anyInt())).thenThrow(SQLException.class);
+        when(postsDatabase.removeScore(anyInt(), anyInt())).thenThrow(SQLException.class);
 
         Metadata metadata = new Metadata();
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
@@ -885,11 +860,6 @@ public class PostsServiceEndpointTest {
 
     @Test
     public void voteRemove_shouldComplete() {
-        Post post = Post
-                .newBuilder()
-                .setId(2)
-                .build();
-
         PostScoreResponse exp = PostScoreResponse
                 .newBuilder()
                 .setId(2)
@@ -900,7 +870,6 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(1).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(post);
         when(postsDatabase.removeScore(anyInt(), anyInt())).thenReturn(exp.getScore());
 
         Metadata metadata = new Metadata();
@@ -909,17 +878,12 @@ public class PostsServiceEndpointTest {
 
         PostVoteRemoveRequest request = PostVoteRemoveRequest
                 .newBuilder()
-                .setId(post.getId())
+                .setId(exp.getId())
                 .build();
 
         PostScoreResponse res = inProcessStub.voteRemove(request);
 
-        verify(postsDatabase).read(uidCaptor.capture(), psrIdCaptor.capture());
-        verify(postsDatabase).removeScore(uidCaptor.capture(), psvrIdCaptor.capture());
-
-        assertThat(uidCaptor.getAllValues()).containsExactly(session.getId(), session.getId());
-        assertThat(psrIdCaptor.getValue()).isEqualTo(exp.getId());
-        assertThat(psvrIdCaptor.getValue()).isEqualTo(exp.getId());
+        verify(postsDatabase).removeScore(session.getId(), request.getId());
 
         assertThat(res).isNotNull();
         assertThat(res).isEqualTo(exp);
@@ -1397,7 +1361,6 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(1).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(10);
 
         Metadata metadata = new Metadata();
@@ -1420,7 +1383,6 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(1).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(10);
 
         Metadata metadata = new Metadata();
@@ -1443,7 +1405,6 @@ public class PostsServiceEndpointTest {
         RequestSession session = RequestSession.newBuilder().setId(1).build();
 
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.removeScore(anyInt(), anyInt())).thenReturn(10);
 
         Metadata metadata = new Metadata();

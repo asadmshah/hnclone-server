@@ -174,24 +174,16 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        val post: Post?
+        val newScore: Int?
         try {
-            post = postsDatabase.read(session.id, request.id)
+            newScore = postsDatabase.decrementScore(session.id, request.id)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
         }
 
-        if (post == null) {
+        if (newScore == null) {
             responseObserver.onError(PostNotFoundStatusException())
-            return
-        }
-
-        val newScore: Int
-        try {
-            newScore = postsDatabase.decrementScore(session.id, request.id) ?: 0
-        } catch (e: SQLException) {
-            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -219,24 +211,16 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        val post: Post?
+        val newScore: Int?
         try {
-            post = postsDatabase.read(session.id, request.id)
+            newScore = postsDatabase.incrementScore(session.id, request.id)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
         }
 
-        if (post == null) {
+        if (newScore == null) {
             responseObserver.onError(PostNotFoundStatusException())
-            return
-        }
-
-        val newScore: Int
-        try {
-            newScore = postsDatabase.incrementScore(session.id, request.id) ?: 0
-        } catch (e: SQLException) {
-            responseObserver.onError(UnknownStatusException())
             return
         }
 
@@ -264,24 +248,16 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        val post: Post?
+        val newScore: Int?
         try {
-            post = postsDatabase.read(session.id, request.id)
+            newScore = postsDatabase.removeScore(session.id, request.id)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
         }
 
-        if (post == null) {
+        if (newScore == null) {
             responseObserver.onError(PostNotFoundStatusException())
-            return
-        }
-
-        val newScore: Int
-        try {
-            newScore = postsDatabase.removeScore(session.id, request.id) ?: 0
-        } catch (e: SQLException) {
-            responseObserver.onError(UnknownStatusException())
             return
         }
 

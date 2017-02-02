@@ -82,6 +82,8 @@ constructor(private val dataSource: DataSource): PostsDatabase {
     }
 
     override fun incrementScore(viewerId: Int, postId: Int): Int? {
+        if (read(0, postId) == null) return null
+
         return dataSource.executeSingle(SQL_INCREMENT_SCORE, {
             it.setInt(1, viewerId)
             it.setInt(2, postId)
@@ -89,6 +91,8 @@ constructor(private val dataSource: DataSource): PostsDatabase {
     }
 
     override fun decrementScore(viewerId: Int, postId: Int): Int? {
+        if (read(0, postId) == null) return null
+
         return dataSource.executeSingle(SQL_DECREMENT_SCORE, {
             it.setInt(1, viewerId)
             it.setInt(2, postId)
@@ -96,6 +100,8 @@ constructor(private val dataSource: DataSource): PostsDatabase {
     }
 
     override fun removeScore(viewerId: Int, postId: Int): Int? {
+        if (read(0, postId) == null) return null
+
         return dataSource.executeSingle(SQL_REMOVE_SCORE, {
             it.setInt(1, viewerId)
             it.setInt(2, postId)
