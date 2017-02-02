@@ -2,13 +2,14 @@ package com.asadmshah.hnclone.client
 
 import com.asadmshah.hnclone.models.User
 import com.asadmshah.hnclone.services.*
-import io.grpc.stub.MetadataUtils
+import io.reactivex.BackpressureStrategy
 import io.reactivex.Completable
+import io.reactivex.Flowable
 import io.reactivex.Single
 
 internal class
-UsersServiceClientImpl(private val sessionsStore: SessionStorage,
-                       private val base: BaseClient,
+UsersServiceClientImpl(private val sessions: SessionStorage,
+                       private val baseClient: BaseClient,
                        private val sessionsClient: SessionsServiceClient) : UsersServiceClient {
 
     override fun create(username: String, password: String, about: String): Single<User> {
@@ -21,11 +22,12 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
     }
 
     internal fun create(request: UserCreateRequest): Single<User> {
-        return Single
-                .fromCallable {
-                    val stub = UsersServiceGrpc.newBlockingStub(base.getChannel())
-                    stub.create(request)
-                }
+        val f1 = sessionsClient.refresh(force = false, nullable = true).toFlowable<User>()
+        val f2 = baseClient.call(sessions, UsersServiceGrpc.METHOD_CREATE, request, BackpressureStrategy.BUFFER)
+
+        return Flowable
+                .concat(f1, f2)
+                .firstOrError()
                 .onStatusRuntimeErrorResumeNext()
     }
 
@@ -37,64 +39,49 @@ UsersServiceClientImpl(private val sessionsStore: SessionStorage,
     }
 
     internal fun read(request: UserReadUsingIDRequest): Single<User> {
-        return Single
-                .fromCallable {
-                    val stub = UsersServiceGrpc.newBlockingStub(base.getChannel())
-                    stub.readUsingID(request)
-                }
+        val f1 = sessionsClient.refresh(force = false, nullable = true).toFlowable<User>()
+        val f2 = baseClient.call(sessions, UsersServiceGrpc.METHOD_READ_USING_ID, request, BackpressureStrategy.BUFFER)
+
+        return Flowable
+                .concat(f1, f2)
+                .firstOrError()
                 .onStatusRuntimeErrorResumeNext()
     }
 
     override fun updateAbout(about: String): Single<String> {
-        return update(UserUpdateAboutRequest
+        return updateAbout(UserUpdateAboutRequest
                 .newBuilder()
                 .setAbout(about)
                 .build())
     }
 
-    internal fun update(request: UserUpdateAboutRequest): Single<String> {
-        return sessionsClient
-                .refresh(force = false, nullable = false)
-                .andThen(justUpdate(request))
+    internal fun updateAbout(request: UserUpdateAboutRequest): Single<String> {
+        val f1 = sessionsClient.refresh(force = false, nullable = false).toFlowable<UserUpdateAboutResponse>()
+        val f2 = baseClient.call(sessions, UsersServiceGrpc.METHOD_UPDATE_ABOUT, request, BackpressureStrategy.BUFFER)
+
+        return Flowable
+                .concat(f1, f2)
+                .firstOrError()
+                .map { it.about }
                 .onStatusRuntimeErrorResumeNext()
     }
 
-    internal fun justUpdate(request: UserUpdateAboutRequest): Single<String> {
-        return Single
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessionsStore.getRequestKey()?.let {
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
-                    stub.updateAbout(request).about
-                }
-    }
-
     override fun updatePassword(password: String): Completable {
-        return update(UserUpdatePasswordRequest
+        return updatePassword(UserUpdatePasswordRequest
                 .newBuilder()
                 .setPassword(password)
                 .build())
     }
 
-    internal fun update(request: UserUpdatePasswordRequest): Completable {
-        return sessionsClient
-                .refresh(force = false, nullable = false)
-                .andThen(justUpdate(request))
-                .onStatusRuntimeErrorResumeNext()
-    }
+    internal fun updatePassword(request: UserUpdatePasswordRequest): Completable {
+        val f1 = sessionsClient.refresh(force = false, nullable = false).toFlowable<UserUpdatePasswordResponse>()
+        val f2 = baseClient.call(sessions, UsersServiceGrpc.METHOD_UPDATE_PASSWORD, request, BackpressureStrategy.BUFFER)
 
-    internal fun justUpdate(request: UserUpdatePasswordRequest): Completable {
-        return Completable
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessionsStore.getRequestKey()?.let {
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(UsersServiceGrpc.newBlockingStub(base.getChannel()), md)
-                    stub.updatePassword(request)
-                }
+        return Flowable
+                .concat(f1, f2)
+                .firstOrError()
+                .toCompletable()
+                .onStatusRuntimeErrorResumeNext()
     }
 
 }

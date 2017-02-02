@@ -4,6 +4,7 @@ import com.asadmshah.hnclone.errors.SessionInvalidTokenStatusException
 import com.asadmshah.hnclone.models.RequestSession
 import com.asadmshah.hnclone.services.SessionCreateRequest
 import com.asadmshah.hnclone.services.SessionsServiceGrpc
+import io.reactivex.BackpressureStrategy
 import io.reactivex.Completable
 import java.util.concurrent.TimeUnit
 
@@ -50,14 +51,14 @@ SessionsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun create(request: SessionCreateRequest): Completable {
-        return Completable
-                .fromCallable {
-                    val stub = SessionsServiceGrpc.newBlockingStub(baseClient.getChannel())
-                    val response = stub.create(request)
-                    sessions.putRefreshKey(response.refresh)
-                    sessions.putRequestKey(response.request)
-                    0
+        return baseClient
+                .call(sessions, SessionsServiceGrpc.METHOD_CREATE, request, BackpressureStrategy.BUFFER)
+                .doOnNext {
+                    sessions.putRefreshKey(it.refresh)
+                    sessions.putRequestKey(it.request)
                 }
+                .firstOrError()
+                .toCompletable()
                 .onStatusRuntimeErrorResumeNext()
     }
 

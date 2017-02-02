@@ -3,7 +3,6 @@ package com.asadmshah.hnclone.client
 import com.asadmshah.hnclone.models.Comment
 import com.asadmshah.hnclone.models.CommentScore
 import com.asadmshah.hnclone.services.*
-import io.grpc.stub.MetadataUtils
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.Single
@@ -30,22 +29,12 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun create(request: CommentCreateRequest): Single<Comment> {
-        return sessionsClient
-                .refresh(force = false, nullable = false)
-                .andThen(justCreate(request))
-                .onStatusRuntimeErrorResumeNext()
-    }
+        val f1 = sessionsClient.refresh(force = false, nullable = false).toFlowable<Comment>()
+        val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_CREATE, request, BackpressureStrategy.BUFFER)
 
-    internal fun justCreate(request: CommentCreateRequest): Single<Comment> {
-        return Single
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessions.getRequestKey()?.let {
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(CommentsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
-                    stub.create(request)
-                }
+        return Flowable.concat(f1, f2)
+                .onStatusRuntimeErrorResumeNext()
+                .firstOrError()
     }
 
     override fun read(postId: Int, commentId: Int): Single<Comment> {
@@ -57,22 +46,12 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun read(request: CommentReadRequest): Single<Comment> {
-        return sessionsClient
-                .refresh(force = false, nullable = true)
-                .andThen(justRead(request))
-                .onStatusRuntimeErrorResumeNext()
-    }
+        val f1 = sessionsClient.refresh(force = false, nullable = true).toFlowable<Comment>()
+        val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_READ, request, BackpressureStrategy.BUFFER)
 
-    internal fun justRead(request: CommentReadRequest): Single<Comment> {
-        return Single
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessions.getRequestKey()?.let {
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(CommentsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
-                    stub.read(request)
-                }
+        return Flowable.concat(f1, f2)
+                .onStatusRuntimeErrorResumeNext()
+                .firstOrError()
     }
 
     override fun readStream(postId: Int): Flowable<Comment> {
@@ -83,10 +62,11 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun readStream(request: CommentReadListFromPostRequest): Flowable<Comment> {
-        val f1 = sessionsClient.refresh(false, true).toFlowable<Comment>()
+        val f1 = sessionsClient.refresh(force = false, nullable = true).toFlowable<Comment>()
         val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_READ_LIST_FROM_POST, request, BackpressureStrategy.BUFFER)
 
-        return Flowable.concat(f1, f2).onStatusRuntimeErrorResumeNext()
+        return Flowable.concat(f1, f2)
+                .onStatusRuntimeErrorResumeNext()
     }
 
     override fun readStream(postId: Int, commentId: Int): Flowable<Comment> {
@@ -101,7 +81,8 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
         val f1 = sessionsClient.refresh(false, true).toFlowable<Comment>()
         val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_READ_LIST_FROM_COMMENT, request, BackpressureStrategy.BUFFER)
 
-        return Flowable.concat(f1, f2).onStatusRuntimeErrorResumeNext()
+        return Flowable.concat(f1, f2)
+                .onStatusRuntimeErrorResumeNext()
     }
 
     override fun voteIncrement(postId: Int, commentId: Int): Single<CommentScoreResponse> {
@@ -113,22 +94,12 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun voteIncrement(request: CommentVoteIncrementRequest): Single<CommentScoreResponse> {
-        return sessionsClient
-                .refresh(force = false, nullable = false)
-                .andThen(justVote(request))
-                .onStatusRuntimeErrorResumeNext()
-    }
+        val f1 = sessionsClient.refresh(force = false, nullable = false).toFlowable<CommentScoreResponse>()
+        val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_VOTE_INCREMENT, request, BackpressureStrategy.BUFFER)
 
-    internal fun justVote(request: CommentVoteIncrementRequest): Single<CommentScoreResponse> {
-        return Single
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessions.getRequestKey()?.let {
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(CommentsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
-                    stub.voteIncrement(request)
-                }
+        return Flowable.concat(f1, f2)
+                .firstOrError()
+                .onStatusRuntimeErrorResumeNext()
     }
 
     override fun voteDecrement(postId: Int, commentId: Int): Single<CommentScoreResponse> {
@@ -140,22 +111,12 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun voteDecrement(request: CommentVoteDecrementRequest): Single<CommentScoreResponse> {
-        return sessionsClient
-                .refresh(force = false, nullable = false)
-                .andThen(justVote(request))
-                .onStatusRuntimeErrorResumeNext()
-    }
+        val f1 = sessionsClient.refresh(force = false, nullable = false).toFlowable<CommentScoreResponse>()
+        val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_VOTE_DECREMENT, request, BackpressureStrategy.BUFFER)
 
-    internal fun justVote(request: CommentVoteDecrementRequest): Single<CommentScoreResponse> {
-        return Single
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessions.getRequestKey()?.let {
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(CommentsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
-                    stub.voteDecrement(request)
-                }
+        return Flowable.concat(f1, f2)
+                .firstOrError()
+                .onStatusRuntimeErrorResumeNext()
     }
 
     override fun voteRemove(postId: Int, commentId: Int): Single<CommentScoreResponse> {
@@ -167,22 +128,13 @@ internal class CommentsServiceClientImpl(private val sessions: SessionStorage,
     }
 
     internal fun voteRemove(request: CommentVoteRemoveRequest): Single<CommentScoreResponse> {
-        return sessionsClient
-                .refresh(force = false, nullable = false)
-                .andThen(justVote(request))
-                .onStatusRuntimeErrorResumeNext()
-    }
+        val f1 = sessionsClient.refresh(force = false, nullable = false).toFlowable<CommentScoreResponse>()
+        val f2 = baseClient.call(sessions, CommentsServiceGrpc.METHOD_VOTE_REMOVE, request, BackpressureStrategy.BUFFER)
 
-    internal fun justVote(request: CommentVoteRemoveRequest): Single<CommentScoreResponse> {
-        return Single
-                .fromCallable {
-                    val md = io.grpc.Metadata()
-                    sessions.getRequestKey()?.let {
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                    }
-                    val stub = MetadataUtils.attachHeaders(CommentsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
-                    stub.voteRemove(request)
-                }
+        return Flowable
+                .concat(f1, f2)
+                .firstOrError()
+                .onStatusRuntimeErrorResumeNext()
     }
 
     override fun subscribeToCommentsStream(postId: Int): Flowable<Comment> {
