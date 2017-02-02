@@ -3,7 +3,6 @@ package com.asadmshah.hnclone.client
 import com.asadmshah.hnclone.models.Post
 import com.asadmshah.hnclone.models.PostScore
 import com.asadmshah.hnclone.services.*
-import io.grpc.*
 import io.grpc.stub.MetadataUtils
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
@@ -13,7 +12,16 @@ internal class PostsServiceClientImpl(private val sessions: SessionStorage,
                                       private val baseClient: BaseClient,
                                       private val sessionsClient: SessionsServiceClient) : PostsServiceClient {
 
-    override fun create(request: PostCreateRequest): Single<Post> {
+    override fun create(title: String, text: String?, url: String?): Single<Post> {
+        return create(PostCreateRequest
+                .newBuilder()
+                .setTitle(title)
+                .setText(text ?: "")
+                .setUrl(url ?: "")
+                .build())
+    }
+
+    internal fun create(request: PostCreateRequest): Single<Post> {
         return sessionsClient
                 .refresh(force = false, nullable = false)
                 .andThen(justCreate(request))
@@ -32,7 +40,14 @@ internal class PostsServiceClientImpl(private val sessions: SessionStorage,
                 }
     }
 
-    override fun read(request: PostReadRequest): Single<Post> {
+    override fun read(id: Int): Single<Post> {
+        return read(PostReadRequest
+                .newBuilder()
+                .setId(id)
+                .build())
+    }
+
+    internal fun read(request: PostReadRequest): Single<Post> {
         return sessionsClient
                 .refresh(force = false, nullable = true)
                 .andThen(justRead(request))
@@ -52,147 +67,187 @@ internal class PostsServiceClientImpl(private val sessions: SessionStorage,
                 }
     }
 
-    override fun readNew(request: PostReadListRequest): Flowable<Post> {
-        return readStream(PostsServiceGrpc.METHOD_READ_NEW_STREAM, request, request.limit)
+    override fun readNewStream(lim: Int, off: Int): Flowable<Post> {
+        return readNewStream(PostReadListRequest
+                .newBuilder()
+                .setLimit(lim)
+                .setOffset(off)
+                .build())
     }
 
-    override fun readNew(request: PostReadListFromUserRequest): Flowable<Post> {
-        return readStream(PostsServiceGrpc.METHOD_READ_NEW_FROM_USER_STREAM, request, request.limit)
+    internal fun readNewStream(request: PostReadListRequest): Flowable<Post> {
+        return sessionsClient
+                .refresh(force = false, nullable = true)
+                .andThen(justReadNewStream(request))
+                .onStatusRuntimeErrorResumeNext()
     }
 
-    override fun readHot(request: PostReadListRequest): Flowable<Post> {
-        return readStream(PostsServiceGrpc.METHOD_READ_HOT_STREAM, request, request.limit)
+    internal fun justReadNewStream(request: PostReadListRequest): Flowable<Post> {
+        return baseClient
+                .call(sessions, PostsServiceGrpc.METHOD_READ_NEW_STREAM, request, BackpressureStrategy.BUFFER)
     }
 
-    override fun readHot(request: PostReadListFromUserRequest): Flowable<Post> {
-        return readStream(PostsServiceGrpc.METHOD_READ_TOP_FROM_USER_STREAM, request, request.limit)
+    override fun readNewStream(userId: Int, lim: Int, off: Int): Flowable<Post> {
+        return readNewStream(PostReadListFromUserRequest
+                .newBuilder()
+                .setId(userId)
+                .setLimit(lim)
+                .setOffset(off)
+                .build())
     }
 
-    internal fun <T> readStream(method: MethodDescriptor<T, Post>, request: T, n: Int): Flowable<Post> {
-        val f1 = sessionsClient.refresh(false, true).toFlowable<Post>()
-        val f2 = Flowable.defer { justReadStream(method, request, n) }
-
-        return Flowable.concat(f1, f2).onStatusRuntimeErrorResumeNext()
+    internal fun readNewStream(request: PostReadListFromUserRequest): Flowable<Post> {
+        return sessionsClient
+                .refresh(force = false, nullable = true)
+                .andThen(justReadNewStream(request))
+                .onStatusRuntimeErrorResumeNext()
     }
 
-    internal fun <T> justReadStream(method: MethodDescriptor<T, Post>, request: T, n: Int): Flowable<Post> {
-        return Flowable
-                .create<Post>({ subscriber ->
+    internal fun justReadNewStream(request: PostReadListFromUserRequest): Flowable<Post> {
+        return baseClient
+                .call(sessions, PostsServiceGrpc.METHOD_READ_NEW_FROM_USER_STREAM, request, BackpressureStrategy.BUFFER)
+    }
+
+    override fun readHotStream(lim: Int, off: Int): Flowable<Post> {
+        return readHotStream(PostReadListRequest
+                .newBuilder()
+                .setLimit(lim)
+                .setOffset(off)
+                .build())
+    }
+
+    internal fun readHotStream(request: PostReadListRequest): Flowable<Post> {
+        return sessionsClient
+                .refresh(force = false, nullable = true)
+                .andThen(justReadHotStream(request))
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun justReadHotStream(request: PostReadListRequest): Flowable<Post> {
+        return baseClient
+                .call(sessions, PostsServiceGrpc.METHOD_READ_HOT_STREAM, request, BackpressureStrategy.BUFFER)
+    }
+
+    override fun readHotStream(userId: Int, lim: Int, off: Int): Flowable<Post> {
+        return readHotStream(PostReadListFromUserRequest
+                .newBuilder()
+                .setId(userId)
+                .setLimit(lim)
+                .setOffset(off)
+                .build())
+    }
+
+    internal fun readHotStream(request: PostReadListFromUserRequest): Flowable<Post> {
+        return sessionsClient
+                .refresh(force = false, nullable = true)
+                .andThen(justReadHotStream(request))
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun justReadHotStream(request: PostReadListFromUserRequest): Flowable<Post> {
+        return baseClient
+                .call(sessions, PostsServiceGrpc.METHOD_READ_TOP_FROM_USER_STREAM, request, BackpressureStrategy.BUFFER)
+    }
+
+    override fun voteIncrement(id: Int): Single<PostScoreResponse> {
+        return voteIncrement(PostVoteIncrementRequest
+                .newBuilder()
+                .setId(id)
+                .build())
+    }
+
+    internal fun voteIncrement(request: PostVoteIncrementRequest): Single<PostScoreResponse> {
+        return sessionsClient
+                .refresh(force = false, nullable = false)
+                .andThen(justVoteIncrement(request))
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun justVoteIncrement(request: PostVoteIncrementRequest): Single<PostScoreResponse> {
+        return Single
+                .fromCallable {
                     val md = io.grpc.Metadata()
                     sessions.getRequestKey()?.let {
                         md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
                     }
-
-                    val call = baseClient.getChannel().newCall(method, CallOptions.DEFAULT)
-
-                    subscriber.setCancellable { call.cancel("", null) }
-
-                    call.start(object : ClientCall.Listener<Post>() {
-                        override fun onMessage(post: Post) {
-                            if (!subscriber.isCancelled) {
-                                subscriber.onNext(post)
-                            }
-                        }
-
-                        override fun onClose(status: Status, trailers: Metadata) {
-                            if (!subscriber.isCancelled) {
-                                if (!status.isOk) {
-                                    subscriber.onError(StatusRuntimeException(status, trailers))
-                                } else {
-                                    subscriber.onComplete()
-                                }
-                            }
-                        }
-
-                        override fun onReady() {
-                            call.sendMessage(request)
-                            call.request(n)
-                            call.halfClose()
-                        }
-                    }, md)
-                }, BackpressureStrategy.BUFFER)
-                .take(n.toLong())
-    }
-
-    override fun vote(request: PostVoteIncrementRequest): Single<PostScoreResponse> {
-        return vote { it.voteIncrement(request) }
-    }
-
-    override fun vote(request: PostVoteDecrementRequest): Single<PostScoreResponse> {
-        return vote { it.voteDecrement(request) }
-    }
-
-    override fun vote(request: PostVoteRemoveRequest): Single<PostScoreResponse> {
-        return vote { it.voteRemove(request) }
-    }
-
-    internal fun vote(function: (PostsServiceGrpc.PostsServiceBlockingStub) -> PostScoreResponse): Single<PostScoreResponse> {
-        return sessionsClient
-                .refresh(force = false, nullable = false)
-                .andThen(justVote(function))
-                .onStatusRuntimeErrorResumeNext()
-    }
-
-    internal fun justVote(function: (PostsServiceGrpc.PostsServiceBlockingStub) -> PostScoreResponse): Single<PostScoreResponse> {
-        return Single
-                .fromCallable {
-                    var stub = PostsServiceGrpc.newBlockingStub(baseClient.getChannel())
-                    sessions.getRequestKey()?.let {
-                        val md = io.grpc.Metadata()
-                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
-                        stub = MetadataUtils.attachHeaders(stub, md)
-                    }
-                    function(stub)
+                    val stub = MetadataUtils.attachHeaders(PostsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
+                    stub.voteIncrement(request)
                 }
     }
 
-    override fun voteStream(): Flowable<PostScore> {
-        return voteStream(PostScoreChangeRequest.getDefaultInstance())
+    override fun voteDecrement(id: Int): Single<PostScoreResponse> {
+        return voteDecrement(PostVoteDecrementRequest
+                .newBuilder()
+                .setId(id)
+                .build())
     }
 
-    override fun voteStream(id: Int): Flowable<PostScore> {
-        return voteStream(PostScoreChangeRequest.newBuilder().setId(id).build())
-    }
-
-    internal fun voteStream(request: PostScoreChangeRequest): Flowable<PostScore> {
-        return Flowable
-                .defer { justVoteStream(request) }
+    internal fun voteDecrement(request: PostVoteDecrementRequest): Single<PostScoreResponse> {
+        return sessionsClient
+                .refresh(force = false, nullable = false)
+                .andThen(justVoteDecrement(request))
                 .onStatusRuntimeErrorResumeNext()
     }
 
-    internal fun justVoteStream(request: PostScoreChangeRequest): Flowable<PostScore> {
-        return Flowable
-                .create<PostScore>({ subscriber ->
-                    val call = baseClient.getChannel().newCall(PostsServiceGrpc.METHOD_POST_SCORE_CHANGE_STREAM, CallOptions.DEFAULT)
+    internal fun justVoteDecrement(request: PostVoteDecrementRequest): Single<PostScoreResponse> {
+        return Single
+                .fromCallable {
+                    val md = io.grpc.Metadata()
+                    sessions.getRequestKey()?.let {
+                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
+                    }
+                    val stub = MetadataUtils.attachHeaders(PostsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
+                    stub.voteDecrement(request)
+                }
+    }
 
-                    subscriber.setCancellable { call.cancel("", null) }
+    override fun voteRemove(id: Int): Single<PostScoreResponse> {
+        return voteRemove(PostVoteRemoveRequest
+                .newBuilder()
+                .setId(id)
+                .build())
+    }
 
-                    call.start(object : ClientCall.Listener<PostScore>() {
-                        override fun onMessage(message: PostScore) {
-                            if (!subscriber.isCancelled) {
-                                subscriber.onNext(message)
-                                call.request(1)
-                            }
-                        }
+    internal fun voteRemove(request: PostVoteRemoveRequest): Single<PostScoreResponse> {
+        return sessionsClient
+                .refresh(force = false, nullable = false)
+                .andThen(justVoteRemove(request))
+                .onStatusRuntimeErrorResumeNext()
+    }
 
-                        override fun onClose(status: Status, trailers: Metadata) {
-                            if (!subscriber.isCancelled) {
-                                if (!status.isOk) {
-                                    subscriber.onError(StatusRuntimeException(status, trailers))
-                                } else {
-                                    subscriber.onComplete()
-                                }
-                            }
-                        }
+    internal fun justVoteRemove(request: PostVoteRemoveRequest): Single<PostScoreResponse> {
+        return Single
+                .fromCallable {
+                    val md = io.grpc.Metadata()
+                    sessions.getRequestKey()?.let {
+                        md.put(Constants.AUTHORIZATION_KEY, it.toByteArray())
+                    }
+                    val stub = MetadataUtils.attachHeaders(PostsServiceGrpc.newBlockingStub(baseClient.getChannel()), md)
+                    stub.voteRemove(request)
+                }
+    }
 
-                        override fun onReady() {
-                            call.sendMessage(request)
-                            call.halfClose()
-                            call.request(1)
-                        }
-                    }, Metadata())
+    override fun subscribeToPostScoresStream(): Flowable<PostScore> {
+        return subscribeToPostScoresStream(PostScoreChangeRequest.getDefaultInstance())
+    }
 
-                }, BackpressureStrategy.LATEST)
+    override fun subscribeToPostScoresStream(id: Int): Flowable<PostScore> {
+        return subscribeToPostScoresStream(PostScoreChangeRequest
+                .newBuilder()
+                .setId(id)
+                .build())
+    }
+
+    internal fun subscribeToPostScoresStream(request: PostScoreChangeRequest): Flowable<PostScore> {
+        return sessionsClient
+                .refresh(force = false, nullable = true)
+                .andThen(justSubscribeToPostScoresStream(request))
+                .onStatusRuntimeErrorResumeNext()
+    }
+
+    internal fun justSubscribeToPostScoresStream(request: PostScoreChangeRequest): Flowable<PostScore> {
+        return baseClient
+                .call(sessions, PostsServiceGrpc.METHOD_POST_SCORE_CHANGE_STREAM, request, BackpressureStrategy.LATEST)
     }
 
 }

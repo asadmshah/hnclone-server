@@ -11,8 +11,9 @@ import com.asadmshah.hnclone.models.SessionToken;
 import com.asadmshah.hnclone.pubsub.PubSub;
 import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.endpoints.PostsServiceEndpoint;
-import com.asadmshah.hnclone.services.*;
-import com.google.common.collect.Lists;
+import com.asadmshah.hnclone.services.PostReadListFromUserRequest;
+import com.asadmshah.hnclone.services.PostReadListRequest;
+import com.asadmshah.hnclone.services.PostReadRequest;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.Flowable;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -69,62 +70,29 @@ public class PostsServiceClientImplTest {
 
     @Test
     public void create_ShouldComplete() throws Exception {
-        PostCreateRequest request = PostCreateRequest
-                .newBuilder()
-                .setTitle("Title")
-                .setText("Text")
-                .setUrl("http://www.google.com")
-                .build();
-
-        Post expPost = Post
-                .newBuilder()
-                .setTitle(request.getTitle())
-                .setText(request.getText())
-                .setUrl(request.getUrl())
-                .build();
-
         RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
         SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
 
-        when(postsDatabase.create(anyInt(), anyString(), anyString(), anyString())).thenReturn(expPost);
+        when(postsDatabase.create(anyInt(), anyString(), anyString(), anyString())).thenReturn(Post.getDefaultInstance());
         when(sessionStorage.getRequestKey()).thenReturn(requestT);
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
 
-        Post post = postsServiceClient.create(request).blockingGet();
+        postsServiceClient.create("Title", "Text", "http://www.google.com").blockingGet();
 
-        String expUrl = StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4(request.getUrl()));
-
-        verify(postsDatabase).create(10, request.getTitle(), request.getText(), expUrl);
-
-        assertThat(post).isNotNull();
-        assertThat(post.getTitle()).isEqualTo(request.getTitle());
-        assertThat(post.getText()).isEqualTo(request.getText());
-        assertThat(post.getUrl()).isEqualTo(request.getUrl());
+        verify(postsDatabase).create(10, "Title", "Text", StringEscapeUtils.escapeEcmaScript(StringEscapeUtils.escapeHtml4("http://www.google.com")));
     }
 
     @Test
     public void readSinglePost_shouldCompleteNotLoggedIn() throws Exception {
-        Post expPost = Post
-                .newBuilder()
-                .setId(20)
-                .build();
+        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
 
-        PostReadRequest request = PostReadRequest
-                .newBuilder()
-                .setId(expPost.getId())
-                .build();
-
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(expPost);
-
-        Post resPost = postsServiceClient.read(request).blockingGet();
-
-        assertThat(resPost).isEqualTo(expPost);
+        postsServiceClient.read(20).blockingGet();
 
         ArgumentCaptor<Integer> uidCaptor = ArgumentCaptor.forClass(Integer.class);
         ArgumentCaptor<Integer> pidCaptor = ArgumentCaptor.forClass(Integer.class);
         verify(postsDatabase).read(uidCaptor.capture(), pidCaptor.capture());
         assertThat(uidCaptor.getValue()).isLessThan(0);
-        assertThat(pidCaptor.getValue()).isEqualTo(expPost.getId());
+        assertThat(pidCaptor.getValue()).isEqualTo(20);
     }
 
     @Test
@@ -154,7 +122,7 @@ public class PostsServiceClientImplTest {
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestSession);
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(expPost);
 
-        Post resPost = postsServiceClient.read(request).blockingGet();
+        Post resPost = postsServiceClient.read(expPost.getId()).blockingGet();
 
         assertThat(resPost).isEqualTo(expPost);
 
@@ -175,13 +143,7 @@ public class PostsServiceClientImplTest {
 
         when(postsDatabase.readNew(anyInt(), anyInt(), anyInt())).thenReturn(fposts);
 
-        PostReadListRequest request = PostReadListRequest
-                .newBuilder()
-                .setLimit(5)
-                .setOffset(0)
-                .build();
-
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readNew(request).blockingIterable(5));
+        List<Post> rposts = postsServiceClient.readNewStream(5, 0).toList().blockingGet();
 
         assertThat(rposts).hasSize(5);
         assertThat(rposts).containsExactlyElementsIn(eposts);
@@ -207,7 +169,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readNew(request).take(3).blockingIterable(5));
+        List<Post> rposts = postsServiceClient.readNewStream(5, 0).take(3).toList().blockingGet();
 
         assertThat(rposts).hasSize(3);
         assertThat(rposts).containsExactly(epost1, epost2, epost3);
@@ -230,7 +192,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readNew(request).blockingIterable(5));
+        List<Post> rposts = postsServiceClient.readNewStream(5, 0).toList().blockingGet();
 
         assertThat(rposts).hasSize(2);
         assertThat(rposts).containsExactly(epost1, epost2);
@@ -269,7 +231,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readNew(request).blockingIterable());
+        List<Post> rposts = postsServiceClient.readNewStream(5, 0).toList().blockingGet();
 
         assertThat(rposts).hasSize(5);
         assertThat(rposts).containsExactlyElementsIn(eposts);
@@ -295,7 +257,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readHot(request).blockingIterable(5));
+        List<Post> rposts = postsServiceClient.readHotStream(5, 0).toList().blockingGet();
 
         assertThat(rposts).hasSize(5);
         assertThat(rposts).containsExactlyElementsIn(eposts);
@@ -334,7 +296,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readHot(request).blockingIterable());
+        List<Post> rposts = postsServiceClient.readHotStream(5, 0).toList().blockingGet();
 
         assertThat(rposts).hasSize(5);
         assertThat(rposts).containsExactlyElementsIn(eposts);
@@ -361,7 +323,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readNew(request).blockingIterable());
+        List<Post> rposts = postsServiceClient.readNewStream(50, 5, 0).toList().blockingGet();
 
         assertThat(rposts).containsExactlyElementsIn(eposts);
     }
@@ -400,7 +362,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readNew(request).blockingIterable());
+        List<Post> rposts = postsServiceClient.readNewStream(50, 5, 0).toList().blockingGet();
 
         assertThat(rposts).containsExactlyElementsIn(eposts);
     }
@@ -426,7 +388,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readHot(request).blockingIterable());
+        List<Post> rposts = postsServiceClient.readHotStream(50, 5, 0).toList().blockingGet();
 
         assertThat(rposts).containsExactlyElementsIn(eposts);
     }
@@ -465,7 +427,7 @@ public class PostsServiceClientImplTest {
                 .setOffset(0)
                 .build();
 
-        List<Post> rposts = Lists.newArrayList(postsServiceClient.readHot(request).blockingIterable());
+        List<Post> rposts = postsServiceClient.readHotStream(50, 5, 0).toList().blockingGet();
 
         assertThat(rposts).containsExactlyElementsIn(eposts);
     }
@@ -488,28 +450,18 @@ public class PostsServiceClientImplTest {
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(2);
 
-        PostVoteIncrementRequest request = PostVoteIncrementRequest
-                .newBuilder()
-                .setId(12)
-                .build();
+        postsServiceClient.voteIncrement(12).blockingGet();
 
-        postsServiceClient.vote(request).blockingGet();
-
-        verify(postsDatabase).incrementScore(requestSession.getId(), request.getId());
+        verify(postsDatabase).incrementScore(10, 12);
     }
 
     @Test
     public void voteIncrement_shouldFailOnNoSession() throws Exception {
         when(sessionStorage.getRequestKey()).thenReturn(null);
 
-        PostVoteIncrementRequest request = PostVoteIncrementRequest
-                .newBuilder()
-                .setId(12)
-                .build();
-
         StatusRuntimeException exception = null;
         try {
-            postsServiceClient.vote(request).blockingGet();
+            postsServiceClient.voteIncrement(12).blockingGet();
         } catch (StatusRuntimeException e) {
             exception = e;
         }
@@ -538,14 +490,9 @@ public class PostsServiceClientImplTest {
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(2);
 
-        PostVoteDecrementRequest request = PostVoteDecrementRequest
-                .newBuilder()
-                .setId(12)
-                .build();
+        postsServiceClient.voteDecrement(12).blockingGet();
 
-        postsServiceClient.vote(request).blockingGet();
-
-        verify(postsDatabase).decrementScore(requestSession.getId(), request.getId());
+        verify(postsDatabase).decrementScore(10, 12);
     }
 
     @Test
@@ -566,14 +513,9 @@ public class PostsServiceClientImplTest {
         when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.removeScore(anyInt(), anyInt())).thenReturn(2);
 
-        PostVoteRemoveRequest request = PostVoteRemoveRequest
-                .newBuilder()
-                .setId(12)
-                .build();
+        postsServiceClient.voteRemove(12).blockingGet();
 
-        postsServiceClient.vote(request).blockingGet();
-
-        verify(postsDatabase).removeScore(requestSession.getId(), request.getId());
+        verify(postsDatabase).removeScore(10, 12);
     }
 
     @Test
@@ -587,7 +529,7 @@ public class PostsServiceClientImplTest {
 
         when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).delay(16, TimeUnit.MILLISECONDS));
 
-        List<PostScore> resScores = Lists.newArrayList(postsServiceClient.voteStream().take(5).blockingIterable());
+        List<PostScore> resScores = postsServiceClient.subscribeToPostScoresStream().take(5).toList().blockingGet();
 
         assertThat(resScores).containsExactlyElementsIn(expScores);
     }
@@ -603,7 +545,7 @@ public class PostsServiceClientImplTest {
 
         when(pubSub.subPostScore()).thenReturn(Flowable.fromIterable(scores).delay(16, TimeUnit.MILLISECONDS));
 
-        PostScore resScore = postsServiceClient.voteStream(expScore.getId()).blockingFirst();
+        PostScore resScore = postsServiceClient.subscribeToPostScoresStream(expScore.getId()).blockingFirst();
 
         assertThat(resScore).isEqualTo(expScore);
     }

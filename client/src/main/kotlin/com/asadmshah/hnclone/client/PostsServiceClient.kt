@@ -2,32 +2,32 @@ package com.asadmshah.hnclone.client
 
 import com.asadmshah.hnclone.models.Post
 import com.asadmshah.hnclone.models.PostScore
-import com.asadmshah.hnclone.services.*
+import com.asadmshah.hnclone.services.PostScoreResponse
 import io.reactivex.Flowable
 import io.reactivex.Single
 
 interface PostsServiceClient {
 
-    fun create(request: PostCreateRequest): Single<Post>
+    fun create(title: String, text: String?, url: String?): Single<Post>
 
-    fun read(request: PostReadRequest): Single<Post>
+    fun read(id: Int): Single<Post>
 
-    fun readNew(request: PostReadListRequest): Flowable<Post>
+    fun readNewStream(lim: Int, off: Int): Flowable<Post>
 
-    fun readNew(request: PostReadListFromUserRequest): Flowable<Post>
+    fun readNewStream(userId: Int, lim: Int, off: Int): Flowable<Post>
 
-    fun readHot(request: PostReadListRequest): Flowable<Post>
+    fun readHotStream(lim: Int, off: Int): Flowable<Post>
 
-    fun readHot(request: PostReadListFromUserRequest): Flowable<Post>
+    fun readHotStream(userId: Int, lim: Int, off: Int): Flowable<Post>
 
-    fun vote(request: PostVoteIncrementRequest): Single<PostScoreResponse>
+    fun voteIncrement(id: Int): Single<PostScoreResponse>
 
-    fun vote(request: PostVoteDecrementRequest): Single<PostScoreResponse>
+    fun voteDecrement(id: Int): Single<PostScoreResponse>
 
-    fun vote(request: PostVoteRemoveRequest): Single<PostScoreResponse>
+    fun voteRemove(id: Int): Single<PostScoreResponse>
 
-    fun voteStream(): Flowable<PostScore>
+    fun subscribeToPostScoresStream(): Flowable<PostScore>
 
-    fun voteStream(id: Int): Flowable<PostScore>
+    fun subscribeToPostScoresStream(id: Int): Flowable<PostScore>
 
 }
