@@ -48,13 +48,8 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        val id = session.id
-
         val title = if (request.title.isNullOrBlank()) null else request.title.trim().escape()
-        val url = if (request.url.isNullOrBlank()) null else request.url.trim().escape()
-        val text = if (request.text.isNullOrBlank()) null else request.text.trim().escape()
-
-        if (title == null) {
+        if (title == null || title.isBlank()) {
             responseObserver.onError(PostTitleRequiredStatusException())
             return
         }
@@ -64,8 +59,16 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        if ((url == null || url.isBlank()) && (text == null || text.isBlank())) {
+        val text = if (request.text.isNullOrBlank()) null else request.text.trim().escape()
+        val url = if (request.url.isNullOrBlank()) null else request.url.trim().escape()
+
+        if (text == null && url == null) {
             responseObserver.onError(PostContentRequiredStatusException())
+            return
+        }
+
+        if (text != null && text.length > 1024) {
+            responseObserver.onError(PostTextTooLongStatusException())
             return
         }
 
@@ -79,14 +82,9 @@ class PostsServiceEndpoint private constructor(component: ServerComponent) : Pos
             return
         }
 
-        if (text != null && text.length > 1024) {
-            responseObserver.onError(PostTextTooLongStatusException())
-            return
-        }
-
         val post: Post?
         try {
-            post = postsDatabase.create(id, title, text ?: "", url ?: "")
+            post = postsDatabase.create(session.id, title, text ?: "", url ?: "")
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
