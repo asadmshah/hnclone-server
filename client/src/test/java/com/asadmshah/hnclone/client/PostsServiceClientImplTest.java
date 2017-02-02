@@ -447,7 +447,6 @@ public class PostsServiceClientImplTest {
 
         when(sessionStorage.getRequestKey()).thenReturn(sessionToken);
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestSession);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(2);
 
         postsServiceClient.voteIncrement(12).blockingGet();
@@ -487,7 +486,6 @@ public class PostsServiceClientImplTest {
 
         when(sessionStorage.getRequestKey()).thenReturn(sessionToken);
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestSession);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(2);
 
         postsServiceClient.voteDecrement(12).blockingGet();
@@ -510,7 +508,6 @@ public class PostsServiceClientImplTest {
 
         when(sessionStorage.getRequestKey()).thenReturn(sessionToken);
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestSession);
-        when(postsDatabase.read(anyInt(), anyInt())).thenReturn(Post.getDefaultInstance());
         when(postsDatabase.removeScore(anyInt(), anyInt())).thenReturn(2);
 
         postsServiceClient.voteRemove(12).blockingGet();
