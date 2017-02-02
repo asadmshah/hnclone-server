@@ -562,7 +562,7 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
-    public void voteIncrement_shouldThrowSQLExceptionOnReadComment() throws Exception {
+    public void voteIncrement_shouldThrowNotFoundException() throws Exception {
         RequestSession session = RequestSession.newBuilder().setId(100).build();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
@@ -570,29 +570,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenThrow(SQLException.class);
-
-        StatusRuntimeException exception = null;
-        try {
-            inProcessStub.voteIncrement(CommentVoteIncrementRequest.getDefaultInstance());
-        } catch (StatusRuntimeException e) {
-            exception = ServiceError.restore(e);
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isInstanceOf(UnknownStatusException.class);
-    }
-
-    @Test
-    public void voteIncrement_shouldThrowNotFoundExceptionOnReadComment() throws Exception {
-        RequestSession session = RequestSession.newBuilder().setId(100).build();
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-
-        Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
-        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(null);
+        when(commentsDatabase.incrementScore(anyInt(), anyInt(), anyInt())).thenReturn(null);
 
         StatusRuntimeException exception = null;
         try {
@@ -606,7 +584,7 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
-    public void voteIncrement_shouldThrowSQLExceptionOnIncrementScore() throws Exception {
+    public void voteIncrement_shouldThrowSQLException() throws Exception {
         RequestSession session = RequestSession.newBuilder().setId(100).build();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
@@ -614,31 +592,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.incrementScore(anyInt(), anyInt())).thenThrow(SQLException.class);
-
-        StatusRuntimeException exception = null;
-        try {
-            inProcessStub.voteIncrement(CommentVoteIncrementRequest.getDefaultInstance());
-        } catch (StatusRuntimeException e) {
-            exception = ServiceError.restore(e);
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isInstanceOf(UnknownStatusException.class);
-    }
-
-    @Test
-    public void voteIncrement_shouldThrowUnknownExceptionOnIncrementScore() throws Exception {
-        RequestSession session = RequestSession.newBuilder().setId(100).build();
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-
-        Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
-        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(null);
+        when(commentsDatabase.incrementScore(anyInt(), anyInt(), anyInt())).thenThrow(SQLException.class);
 
         StatusRuntimeException exception = null;
         try {
@@ -660,8 +614,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(10);
+        when(commentsDatabase.incrementScore(anyInt(), anyInt(), anyInt())).thenReturn(10);
 
         CommentVoteIncrementRequest request = CommentVoteIncrementRequest
                 .newBuilder()
@@ -676,7 +629,7 @@ public class CommentsServiceEndpointTest {
         assertThat(response.getScore()).isEqualTo(10);
         assertThat(response.getVoted()).isEqualTo(1);
 
-        verify(commentsDatabase).incrementScore(session.getId(), request.getCommentId());
+        verify(commentsDatabase).incrementScore(session.getId(), request.getPostId(), request.getCommentId());
     }
 
     @Test
@@ -688,8 +641,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(10);
+        when(commentsDatabase.incrementScore(anyInt(), anyInt(), anyInt())).thenReturn(10);
 
         CommentVoteIncrementRequest request = CommentVoteIncrementRequest
                 .newBuilder()
@@ -725,7 +677,7 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
-    public void voteDecrement_shouldThrowSQLExceptionOnReadComment() throws Exception {
+    public void voteDecrement_shouldThrowNotFoundException() throws Exception {
         RequestSession session = RequestSession.newBuilder().setId(100).build();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
@@ -733,29 +685,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenThrow(SQLException.class);
-
-        StatusRuntimeException exception = null;
-        try {
-            inProcessStub.voteDecrement(CommentVoteDecrementRequest.getDefaultInstance());
-        } catch (StatusRuntimeException e) {
-            exception = ServiceError.restore(e);
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isInstanceOf(UnknownStatusException.class);
-    }
-
-    @Test
-    public void voteDecrement_shouldThrowNotFoundExceptionOnReadComment() throws Exception {
-        RequestSession session = RequestSession.newBuilder().setId(100).build();
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-
-        Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
-        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(null);
+        when(commentsDatabase.decrementScore(anyInt(), anyInt(), anyInt())).thenReturn(null);
 
         StatusRuntimeException exception = null;
         try {
@@ -769,7 +699,7 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
-    public void voteDecrement_shouldThrowSQLExceptionOnDecrementScore() throws Exception {
+    public void voteDecrement_shouldThrowSQLException() throws Exception {
         RequestSession session = RequestSession.newBuilder().setId(100).build();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
@@ -777,31 +707,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.decrementScore(anyInt(), anyInt())).thenThrow(SQLException.class);
-
-        StatusRuntimeException exception = null;
-        try {
-            inProcessStub.voteDecrement(CommentVoteDecrementRequest.getDefaultInstance());
-        } catch (StatusRuntimeException e) {
-            exception = ServiceError.restore(e);
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isInstanceOf(UnknownStatusException.class);
-    }
-
-    @Test
-    public void voteDecrement_shouldThrowUnknownExceptionOnDecrementScore() throws Exception {
-        RequestSession session = RequestSession.newBuilder().setId(100).build();
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-
-        Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
-        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(null);
+        when(commentsDatabase.decrementScore(anyInt(), anyInt(), anyInt())).thenThrow(SQLException.class);
 
         StatusRuntimeException exception = null;
         try {
@@ -823,8 +729,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(10);
+        when(commentsDatabase.decrementScore(anyInt(), anyInt(), anyInt())).thenReturn(10);
 
         CommentVoteDecrementRequest request = CommentVoteDecrementRequest
                 .newBuilder()
@@ -839,7 +744,7 @@ public class CommentsServiceEndpointTest {
         assertThat(response.getScore()).isEqualTo(10);
         assertThat(response.getVoted()).isEqualTo(-1);
 
-        verify(commentsDatabase).decrementScore(session.getId(), request.getCommentId());
+        verify(commentsDatabase).decrementScore(session.getId(), request.getPostId(), request.getCommentId());
     }
 
     @Test
@@ -851,8 +756,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(10);
+        when(commentsDatabase.decrementScore(anyInt(), anyInt(), anyInt())).thenReturn(10);
 
         CommentVoteDecrementRequest request = CommentVoteDecrementRequest
                 .newBuilder()
@@ -888,7 +792,7 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
-    public void voteRemove_shouldThrowSQLExceptionOnReadComment() throws Exception {
+    public void voteRemove_shouldThrowSQLException() throws Exception {
         RequestSession session = RequestSession.newBuilder().setId(100).build();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
@@ -896,7 +800,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenThrow(SQLException.class);
+        when(commentsDatabase.removeScore(anyInt(), anyInt(), anyInt())).thenThrow(SQLException.class);
 
         StatusRuntimeException exception = null;
         try {
@@ -910,7 +814,7 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
-    public void voteRemove_shouldThrowNotFoundExceptionOnReadComment() throws Exception {
+    public void voteRemove_shouldThrowNotFoundException() throws Exception {
         RequestSession session = RequestSession.newBuilder().setId(100).build();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
 
@@ -918,7 +822,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(null);
+        when(commentsDatabase.removeScore(anyInt(), anyInt(), anyInt())).thenReturn(null);
 
         StatusRuntimeException exception = null;
         try {
@@ -932,52 +836,6 @@ public class CommentsServiceEndpointTest {
     }
 
     @Test
-    public void voteRemove_shouldThrowSQLExceptionOnDecrementScore() throws Exception {
-        RequestSession session = RequestSession.newBuilder().setId(100).build();
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-
-        Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
-        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.removeScore(anyInt(), anyInt())).thenThrow(SQLException.class);
-
-        StatusRuntimeException exception = null;
-        try {
-            inProcessStub.voteRemove(CommentVoteRemoveRequest.getDefaultInstance());
-        } catch (StatusRuntimeException e) {
-            exception = ServiceError.restore(e);
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isInstanceOf(UnknownStatusException.class);
-    }
-
-    @Test
-    public void voteRemove_shouldThrowUnknownExceptionOnDecrementScore() throws Exception {
-        RequestSession session = RequestSession.newBuilder().setId(100).build();
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-
-        Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
-        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.removeScore(anyInt(), anyInt())).thenReturn(null);
-
-        StatusRuntimeException exception = null;
-        try {
-            inProcessStub.voteRemove(CommentVoteRemoveRequest.getDefaultInstance());
-        } catch (StatusRuntimeException e) {
-            exception = ServiceError.restore(e);
-        }
-
-        assertThat(exception).isNotNull();
-        assertThat(exception).isInstanceOf(UnknownStatusException.class);
-    }
-
-    @Test
     public void voteRemove_shouldComplete() throws Exception {
         RequestSession session = RequestSession.newBuilder().setId(100).build();
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
@@ -986,8 +844,7 @@ public class CommentsServiceEndpointTest {
         metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
         inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.removeScore(anyInt(), anyInt())).thenReturn(10);
+        when(commentsDatabase.removeScore(anyInt(), anyInt(), anyInt())).thenReturn(10);
 
         CommentVoteRemoveRequest request = CommentVoteRemoveRequest
                 .newBuilder()
@@ -1002,7 +859,38 @@ public class CommentsServiceEndpointTest {
         assertThat(response.getScore()).isEqualTo(10);
         assertThat(response.getVoted()).isEqualTo(0);
 
-        verify(commentsDatabase).removeScore(session.getId(), request.getCommentId());
+        verify(commentsDatabase).removeScore(session.getId(), request.getPostId(), request.getCommentId());
+    }
+
+    @Test
+    public void voteRemove_shouldPublishCommentScore() throws Exception {
+        RequestSession session = RequestSession.newBuilder().setId(100).build();
+        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
+
+        Metadata metadata = new Metadata();
+        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
+        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
+
+        when(commentsDatabase.removeScore(anyInt(), anyInt(), anyInt())).thenReturn(10);
+
+        CommentVoteRemoveRequest request = CommentVoteRemoveRequest
+                .newBuilder()
+                .setPostId(10)
+                .setCommentId(20)
+                .build();
+
+        inProcessStub.voteRemove(request);
+
+        CommentScore expPublishedScore = CommentScore
+                .newBuilder()
+                .setPostId(10)
+                .setCommentId(20)
+                .setScore(10)
+                .build();
+
+        ArgumentCaptor<CommentScore> captor = ArgumentCaptor.forClass(CommentScore.class);
+        verify(pubSub).pubCommentScore(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(expPublishedScore);
     }
 
     @Test
@@ -1069,37 +957,5 @@ public class CommentsServiceEndpointTest {
         List<CommentScore> response = Lists.newArrayList(inProcessStub.commentScoreStream(request));
 
         assertThat(response).containsExactly(cs1, cs3, cs5).inOrder();
-    }
-
-    @Test
-    public void voteRemove_shouldPublishCommentScore() throws Exception {
-        RequestSession session = RequestSession.newBuilder().setId(100).build();
-        when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(session);
-
-        Metadata metadata = new Metadata();
-        metadata.put(SessionInterceptor.Companion.getHEADER_KEY(), " ".getBytes());
-        inProcessStub = MetadataUtils.attachHeaders(inProcessStub, metadata);
-
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.removeScore(anyInt(), anyInt())).thenReturn(10);
-
-        CommentVoteRemoveRequest request = CommentVoteRemoveRequest
-                .newBuilder()
-                .setPostId(10)
-                .setCommentId(20)
-                .build();
-
-        inProcessStub.voteRemove(request);
-
-        CommentScore expPublishedScore = CommentScore
-                .newBuilder()
-                .setPostId(10)
-                .setCommentId(20)
-                .setScore(10)
-                .build();
-
-        ArgumentCaptor<CommentScore> captor = ArgumentCaptor.forClass(CommentScore.class);
-        verify(pubSub).pubCommentScore(captor.capture());
-        assertThat(captor.getValue()).isEqualTo(expPublishedScore);
     }
 }

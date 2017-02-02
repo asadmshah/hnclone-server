@@ -15,10 +15,10 @@ interface CommentsDatabase {
 
     fun readComments(viewerId: Int, postId: Int, parentId: Int): Flowable<Comment>
 
-    fun incrementScore(userId: Int, commentId: Int): Int?
+    fun incrementScore(userId: Int, postId: Int, commentId: Int): Int?
 
-    fun decrementScore(userId: Int, commentId: Int): Int?
+    fun decrementScore(userId: Int, postId: Int, commentId: Int): Int?
 
-    fun removeScore(userId: Int, commentId: Int): Int?
+    fun removeScore(userId: Int, postId: Int, commentId: Int): Int?
 
 }

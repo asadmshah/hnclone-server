@@ -22,11 +22,11 @@ constructor(private val dataSource: DataSource) : CommentsDatabase {
         // language=PostgreSQL
         const val SQL_READ_COMMENT = "SELECT * FROM comments_read_comment(?, ?, ?);"
         // language=PostgreSQL
-        const val SQL_INCREMENT_SCORE = "SELECT * FROM comment_votes_upsert(?, ?, 1);"
+        const val SQL_INCREMENT_SCORE = "SELECT * FROM comment_votes_upsert(?, ?, ?, 1);"
         // language=PostgreSQL
-        const val SQL_DECREMENT_SCORE = "SELECT * FROM comment_votes_upsert(?, ?, -1);"
+        const val SQL_DECREMENT_SCORE = "SELECT * FROM comment_votes_upsert(?, ?, ?, -1);"
         // language=PostgreSQL
-        const val SQL_REMOVE_SCORE = "SELECT * FROM comment_votes_delete(?, ?);"
+        const val SQL_REMOVE_SCORE = "SELECT * FROM comment_votes_delete(?, ?, ?);"
     }
 
     override fun create(userId: Int, postId: Int, text: String): Comment? {
@@ -74,27 +74,36 @@ constructor(private val dataSource: DataSource) : CommentsDatabase {
                 }, ResultSet::getComment)
     }
 
-    override fun incrementScore(userId: Int, commentId: Int): Int? {
+    override fun incrementScore(userId: Int, postId: Int, commentId: Int): Int? {
+        if (readComment(userId, postId, commentId) == null) return null
+
         return dataSource
                 .executeSingle(SQL_INCREMENT_SCORE, {
                     it.setInt(1, userId)
-                    it.setInt(2, commentId)
+                    it.setInt(2, postId)
+                    it.setInt(3, commentId)
                 }, ResultSet::getInt)
     }
 
-    override fun decrementScore(userId: Int, commentId: Int): Int? {
+    override fun decrementScore(userId: Int, postId: Int, commentId: Int): Int? {
+        if (readComment(userId, postId, commentId) == null) return null
+
         return dataSource
                 .executeSingle(SQL_DECREMENT_SCORE, {
                     it.setInt(1, userId)
-                    it.setInt(2, commentId)
+                    it.setInt(2, postId)
+                    it.setInt(3, commentId)
                 }, ResultSet::getInt)
     }
 
-    override fun removeScore(userId: Int, commentId: Int): Int? {
+    override fun removeScore(userId: Int, postId: Int, commentId: Int): Int? {
+        if (readComment(userId, postId, commentId) == null) return null
+
         return dataSource
                 .executeSingle(SQL_REMOVE_SCORE, {
                     it.setInt(1, userId)
-                    it.setInt(2, commentId)
+                    it.setInt(2, postId)
+                    it.setInt(3, commentId)
                 }, ResultSet::getInt)
     }
 }

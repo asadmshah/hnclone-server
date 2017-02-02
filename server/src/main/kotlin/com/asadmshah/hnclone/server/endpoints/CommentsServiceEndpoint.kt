@@ -122,29 +122,16 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
             return
         }
 
-        val comment: Comment?
-        try {
-            comment = commentsDatabase.readComment(-1, request.postId, request.commentId)
-        } catch (e: SQLException) {
-            responseObserver.onError(UnknownStatusException())
-            return
-        }
-
-        if (comment == null) {
-            responseObserver.onError(CommentNotFoundStatusException())
-            return
-        }
-
         val score: Int?
         try {
-            score = commentsDatabase.incrementScore(session.id, request.commentId)
+            score = commentsDatabase.incrementScore(session.id, request.postId, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (score == null) {
-            responseObserver.onError(UnknownStatusException())
+            responseObserver.onError(CommentNotFoundStatusException())
             return
         }
 
@@ -176,29 +163,16 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
             return
         }
 
-        val comment: Comment?
-        try {
-            comment = commentsDatabase.readComment(-1, request.postId, request.commentId)
-        } catch (e: SQLException) {
-            responseObserver.onError(UnknownStatusException())
-            return
-        }
-
-        if (comment == null) {
-            responseObserver.onError(CommentNotFoundStatusException())
-            return
-        }
-
         val score: Int?
         try {
-            score = commentsDatabase.decrementScore(session.id, request.commentId)
+            score = commentsDatabase.decrementScore(session.id, request.postId, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (score == null) {
-            responseObserver.onError(UnknownStatusException())
+            responseObserver.onError(CommentNotFoundStatusException())
             return
         }
 
@@ -230,29 +204,16 @@ class CommentsServiceEndpoint private constructor(component: ServerComponent) : 
             return
         }
 
-        val comment: Comment?
-        try {
-            comment = commentsDatabase.readComment(-1, request.postId, request.commentId)
-        } catch (e: SQLException) {
-            responseObserver.onError(UnknownStatusException())
-            return
-        }
-
-        if (comment == null) {
-            responseObserver.onError(CommentNotFoundStatusException())
-            return
-        }
-
         val score: Int?
         try {
-            score = commentsDatabase.removeScore(session.id, request.commentId)
+            score = commentsDatabase.removeScore(session.id, request.postId, request.commentId)
         } catch (e: SQLException) {
             responseObserver.onError(UnknownStatusException())
             return
         }
 
         if (score == null) {
-            responseObserver.onError(UnknownStatusException())
+            responseObserver.onError(CommentNotFoundStatusException())
             return
         }
 
