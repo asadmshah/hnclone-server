@@ -12,6 +12,8 @@ import com.asadmshah.hnclone.server.ServerComponent;
 import com.asadmshah.hnclone.server.endpoints.CommentsServiceEndpoint;
 import com.asadmshah.hnclone.services.CommentScoreResponse;
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.functions.Predicate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +25,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -159,8 +160,7 @@ public class CommentsServiceClientImplTest {
         RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
         SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.incrementScore(anyInt(), anyInt())).thenReturn(3);
+        when(commentsDatabase.incrementScore(anyInt(), anyInt(), anyInt())).thenReturn(3);
         when(sessionStorage.getRequestKey()).thenReturn(requestT);
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
 
@@ -182,8 +182,7 @@ public class CommentsServiceClientImplTest {
         RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
         SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.decrementScore(anyInt(), anyInt())).thenReturn(3);
+        when(commentsDatabase.decrementScore(anyInt(), anyInt(), anyInt())).thenReturn(3);
         when(sessionStorage.getRequestKey()).thenReturn(requestT);
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
 
@@ -205,8 +204,7 @@ public class CommentsServiceClientImplTest {
         RequestSession requestS = RequestSession.newBuilder().setId(10).setExpire(System.currentTimeMillis() + 60_000).build();
         SessionToken requestT = SessionToken.newBuilder().setData(requestS.toByteString()).build();
 
-        when(commentsDatabase.readComment(anyInt(), anyInt(), anyInt())).thenReturn(Comment.getDefaultInstance());
-        when(commentsDatabase.removeScore(anyInt(), anyInt())).thenReturn(3);
+        when(commentsDatabase.removeScore(anyInt(), anyInt(), anyInt())).thenReturn(3);
         when(sessionStorage.getRequestKey()).thenReturn(requestT);
         when(sessionManager.parseRequestToken(any(byte[].class))).thenReturn(requestS);
 
@@ -224,11 +222,16 @@ public class CommentsServiceClientImplTest {
 
         when(pubSub.subComments()).thenReturn(Flowable.fromIterable(comments).delay(100, TimeUnit.MILLISECONDS));
 
-        List<Comment> expComments = comments
-                .stream()
-                .filter(it -> it.getPostId() == 1)
-                .limit(3)
-                .collect(Collectors.toList());
+        List<Comment> expComments = Observable.fromIterable(comments)
+                .filter(new Predicate<Comment>() {
+                    @Override
+                    public boolean test(Comment comment) throws Exception {
+                        return comment.getPostId() == 1;
+                    }
+                })
+                .take(3)
+                .toList()
+                .blockingGet();
 
         List<Comment> resComments = commentsClient
                 .subscribeToCommentsStream(1)
@@ -248,11 +251,16 @@ public class CommentsServiceClientImplTest {
 
         when(pubSub.subCommentScores()).thenReturn(Flowable.fromIterable(commentScores).delay(100, TimeUnit.MILLISECONDS));
 
-        List<CommentScore> expCommentScores = commentScores
-                .stream()
-                .filter(it -> it.getPostId() == 1)
-                .limit(3)
-                .collect(Collectors.toList());
+        List<CommentScore> expCommentScores = Observable.fromIterable(commentScores)
+                .filter(new Predicate<CommentScore>() {
+                    @Override
+                    public boolean test(CommentScore comment) throws Exception {
+                        return comment.getPostId() == 1;
+                    }
+                })
+                .take(3)
+                .toList()
+                .blockingGet();
 
         List<CommentScore> resCommentScores = commentsClient
                 .subscribeToCommentScoresStream(1)
