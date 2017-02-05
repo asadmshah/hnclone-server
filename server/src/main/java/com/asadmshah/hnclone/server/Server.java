@@ -52,9 +52,6 @@ public class Server {
     public static void main(String[] args) throws Exception {
         Configuration configuration = new Configurations().properties(Server.class.getClassLoader().getResource("debug.properties"));
 
-        MetricsServer metricsServer = new MetricsServer(9096);
-        metricsServer.start();
-
         ServerComponent component = DaggerServerComponent.builder()
                 .serverModule(new ServerModule(configuration))
                 .build();
@@ -62,8 +59,6 @@ public class Server {
         final Server server = new Server(component);
         server.start();
         server.blockedStop();
-
-        metricsServer.stop();
     }
 
 }
