@@ -1,5 +1,6 @@
 package com.asadmshah.hnclone.server;
 
+import com.asadmshah.hnclone.server.endpoints.CommentsServiceEndpoint;
 import com.asadmshah.hnclone.server.endpoints.PostsServiceEndpoint;
 import com.asadmshah.hnclone.server.endpoints.SessionsServiceEndpoint;
 import com.asadmshah.hnclone.server.endpoints.UsersServiceEndpoint;
@@ -19,6 +20,7 @@ public class Server {
                 .addService(SessionsServiceEndpoint.create(component))
                 .addService(PostsServiceEndpoint.create(component))
                 .addService(UsersServiceEndpoint.create(component))
+                .addService(CommentsServiceEndpoint.create(component))
                 .build();
     }
 
