@@ -2,6 +2,9 @@ version '0.1.0'
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
 }
 
 dependencies {
@@ -17,9 +20,9 @@ dependencies {
     compile group: 'com.google.dagger', name: 'dagger', version: "$dagger_version"
     kapt    group: 'com.google.dagger', name: 'dagger-compiler', version: "$dagger_version"
 
-    compile group: 'io.grpc', name: 'grpc-all', version: "$grpc_version"
-
-    compile group: 'com.impossibl.pgjdbc-ng', name: 'pgjdbc-ng', version: '0.6'
+    compile(group: 'com.impossibl.pgjdbc-ng', name: 'pgjdbc-ng', version: '0.6') {
+        exclude group: 'io.netty'
+    }
     compile group: 'com.zaxxer', name: 'HikariCP', version: '2.5.1'
     compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.0.4'
     compile group: 'org.mindrot', name: 'jbcrypt', version: '0.3m'

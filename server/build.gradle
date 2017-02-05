@@ -23,7 +23,10 @@ dependencies {
     compile group: 'com.google.dagger', name: 'dagger', version: "$dagger_version"
     kapt    group: 'com.google.dagger', name: 'dagger-compiler', version: "$dagger_version"
 
-    compile group: 'io.grpc', name: 'grpc-all', version: "$grpc_version"
+    compile group: 'io.grpc', name: 'grpc-netty', version: "$grpc_version"
+    compile group: 'io.grpc', name: 'grpc-protobuf', version: "$grpc_version"
+    compile group: 'io.grpc', name: 'grpc-stub', version: "$grpc_version"
+
     compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
 }
 
