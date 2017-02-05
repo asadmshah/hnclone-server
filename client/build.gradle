@@ -18,3 +18,15 @@ dependencies {
 
     testCompile project(':server')
 }
+
+jar.finalizedBy shadowJar
+
+shadowJar {
+    mustRunAfter jar
+    archiveName = "client-${version}.jar"
+    classifier = 'fat'
+}
+
+artifacts {
+    shadowJar
+}
