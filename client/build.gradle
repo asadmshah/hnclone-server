@@ -19,6 +19,13 @@ dependencies {
     testCompile project(':server')
 }
 
+configurations {
+    runtime.exclude group: 'io.reactivex.rxjava2'
+    runtime.exclude group: 'org.jetbrains.kotlin'
+    runtime.exclude group: 'io.grpc'
+    runtime.exclude group: 'com.google.protobuf'
+}
+
 jar.finalizedBy shadowJar
 
 shadowJar {
