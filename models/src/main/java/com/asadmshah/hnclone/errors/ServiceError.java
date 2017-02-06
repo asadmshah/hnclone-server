@@ -48,7 +48,7 @@ public enum ServiceError {
 
     public static StatusRuntimeException restore(StatusRuntimeException exception) {
         if (exception.getTrailers() == null || !exception.getTrailers().containsKey(KEY)) {
-            return new UnknownStatusException();
+            return exception;
         }
 
         switch (fromCode(exception.getTrailers().get(KEY))) {
